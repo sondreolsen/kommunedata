@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kommunenes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-header">
+      <p class="eyebrow">Vestland fylke</p>
+      <h1>Kommunenes</h1>
+      <p class="intro">
+        Klikk på en statistikk til høyre for å farge kommunene og se tallene i tabellen under.
+      </p>
+    </header>
+
+    <main class="layout">
+      <section class="map-panel">
+        <div class="map-card">
+          <div class="map-card__header">
+            <div>
+              <p class="section-label">Kart</p>
+              <h2 id="map-title">Velg en statistikk</h2>
+            </div>
+            <p class="map-note" id="map-note">
+              Kommunene starter uten farge. Tallene under er eksempeldata til vi kobler på ekte statistikk.
+            </p>
+          </div>
+
+          <div class="legend" id="legend">
+            <span class="legend__item"><i class="legend__swatch legend__swatch--missing"></i>Mangler data</span>
+            <span class="legend__item"><i class="legend__swatch legend__swatch--good"></i>Grønn</span>
+            <span class="legend__item"><i class="legend__swatch legend__swatch--medium"></i>Gul</span>
+            <span class="legend__item"><i class="legend__swatch legend__swatch--bad"></i>Rød</span>
+          </div>
+
+          <div class="map-frame">
+            <svg id="vestland-map" viewBox="0 0 720 980" role="img" aria-labelledby="map-title"></svg>
+          </div>
+        </div>
+      </section>
+
+      <aside class="control-panel">
+        <div class="control-card">
+          <p class="section-label">Statistikker</p>
+          <div class="metric-list" id="metric-list"></div>
+          <button class="reset-button" id="reset-button" type="button">Nullstill kart</button>
+        </div>
+      </aside>
+    </main>
+
+    <section class="table-panel">
+      <div class="table-card">
+        <div class="table-card__header">
+          <div>
+            <p class="section-label">Kommunetabell</p>
+            <h2 id="table-title">Ingen statistikk valgt</h2>
+          </div>
+          <p class="table-note" id="table-note">
+            Eksempeldata brukes i denne første versjonen.
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kommune</th>
+                <th>Verdi</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="data/vestland-geo.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
