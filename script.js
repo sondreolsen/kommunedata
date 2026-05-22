@@ -7,25 +7,62 @@ const tableTitle = document.querySelector("#table-title");
 const tableNote = document.querySelector("#table-note");
 const tableBody = document.querySelector("#table-body");
 
+const VIEW_WIDTH = 760;
+const VIEW_HEIGHT = 980;
+const MAP_PADDING = 28;
+
 const municipalityOrder = [
   "Alver", "Askvoll", "Askøy", "Aurland", "Austevoll", "Austrheim", "Bergen",
   "Bjørnafjorden", "Bremanger", "Bømlo", "Eidfjord", "Etne", "Fedje", "Fitjar",
   "Fjaler", "Gloppen", "Gulen", "Hyllestad", "Høyanger", "Kinn", "Kvam",
   "Kvinnherad", "Luster", "Lærdal", "Masfjorden", "Modalen", "Osterøy",
-  "Sogndal", "Solund", "Samnanger", "Stad", "Stord", "Stryn", "Sunnfjord",
+  "Samnanger", "Solund", "Sogndal", "Stad", "Stord", "Stryn", "Sunnfjord",
   "Sveio", "Tysnes", "Ullensvang", "Ulvik", "Vaksdal", "Vik", "Voss",
   "Årdal", "Øygarden"
 ];
 
-const displayNameFixes = {
+const nameAliases = {
   "AskÃ¸y": "Askøy",
+  "AskÃƒÂ¸y": "Askøy",
   "BjÃ¸rnafjorden": "Bjørnafjorden",
+  "BjÃƒÂ¸rnafjorden": "Bjørnafjorden",
   "BÃ¸mlo": "Bømlo",
+  "BÃƒÂ¸mlo": "Bømlo",
   "HÃ¸yanger": "Høyanger",
+  "HÃƒÂ¸yanger": "Høyanger",
   "LÃ¦rdal": "Lærdal",
+  "LÃƒÂ¦rdal": "Lærdal",
   "OsterÃ¸y": "Osterøy",
+  "OsterÃƒÂ¸y": "Osterøy",
   "Ã…rdal": "Årdal",
-  "Ã˜ygarden": "Øygarden"
+  "Ãƒâ€¦rdal": "Årdal",
+  "Ã˜ygarden": "Øygarden",
+  "ÃƒËœygarden": "Øygarden"
+};
+
+const labelOffsets = {
+  Askøy: [-8, -8],
+  Austrheim: [0, -10],
+  Austevoll: [0, 14],
+  Bergen: [0, 7],
+  Bjørnafjorden: [18, 6],
+  Bømlo: [0, 10],
+  Fedje: [0, -8],
+  Fitjar: [10, 8],
+  Kvam: [10, 10],
+  Modalen: [0, -8],
+  Osterøy: [16, -8],
+  Samnanger: [20, 10],
+  Stord: [12, 6],
+  Sveio: [0, 10],
+  Tysnes: [18, 12],
+  Ulvik: [10, 0],
+  Vaksdal: [12, 0],
+  Øygarden: [-18, 0]
+};
+
+const labelShortNames = {
+  Bjørnafjorden: "Bjørnafj."
 };
 
 const thresholdsText = {
@@ -39,7 +76,6 @@ const metrics = {
   arbeidsledige: {
     title: "Arbeidsledige",
     description: "Eksempeldata. Lavere andel er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 2,2 %",
@@ -50,7 +86,6 @@ const metrics = {
   ufore: {
     title: "Uføre",
     description: "Eksempeldata. Lavere andel er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 8,5 %",
@@ -61,7 +96,6 @@ const metrics = {
   ungeUfore: {
     title: "Unge uføre",
     description: "Eksempeldata. Lavere andel er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 2,4 %",
@@ -72,7 +106,6 @@ const metrics = {
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
     description: "Eksempeldata. Lavere antall dager er bedre.",
-    unit: "dager",
     format: value => `${Math.round(value)} dager`,
     thresholds: {
       good: "Under 120 dager",
@@ -83,7 +116,6 @@ const metrics = {
   sykefravaer: {
     title: "Sykefravær",
     description: "Eksempeldata. Lavere andel er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 6,8 %",
@@ -94,7 +126,6 @@ const metrics = {
   befolkningsvekst: {
     title: "Befolkningsvekst i prosent de siste tre årene",
     description: "Eksempeldata. Høyere vekst er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Over 2,5 %",
@@ -105,28 +136,38 @@ const metrics = {
   driftsresultat: {
     title: "Driftsresultat kommunen",
     description: "Eksempeldata. Høyere resultat er bedre.",
-    unit: "%",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Over 1,8 %",
       medium: "0 % til 1,8 %",
       bad: "Under 0 %"
     }
+  },
+  eiendomsskatt: {
+    title: "Eiendomsskatt",
+    description: "Eksempeldata. Lavere nivå er bedre.",
+    format: value => `${value.toFixed(1).replace(".", ",")} ‰`,
+    thresholds: {
+      good: "Under 2,0 ‰",
+      medium: "2,0 ‰ til 4,0 ‰",
+      bad: "Over 4,0 ‰"
+    }
   }
 };
 
 function buildMetricValues() {
-  return municipalityOrder.reduce((acc, name, index) => {
-    acc[name] = {
-      arbeidsledige: createValue(index, 1.5, 0.26, 4.1),
-      ufore: createValue(index, 6.2, 0.44, 14.8),
-      ungeUfore: createValue(index, 1.3, 0.12, 4.3),
-      saksbehandlingstid: Math.round(createValue(index, 68, 8.2, 260)),
-      sykefravaer: createValue(index, 5.7, 0.18, 9.4),
+  return municipalityOrder.reduce((accumulator, municipalityName, index) => {
+    accumulator[municipalityName] = {
+      arbeidsledige: createValue(index, 1.4, 0.28, 4.4),
+      ufore: createValue(index, 6.1, 0.43, 14.9),
+      ungeUfore: createValue(index, 1.2, 0.13, 4.6),
+      saksbehandlingstid: Math.round(createValue(index, 65, 8.5, 260)),
+      sykefravaer: createValue(index, 5.6, 0.19, 9.7),
       befolkningsvekst: createGrowthValue(index),
-      driftsresultat: createOperatingValue(index)
+      driftsresultat: createOperatingValue(index),
+      eiendomsskatt: createTaxValue(index)
     };
-    return acc;
+    return accumulator;
   }, {});
 }
 
@@ -145,6 +186,11 @@ function createOperatingValue(index) {
   return Math.max(-3.1, Math.min(value, 4.9));
 }
 
+function createTaxValue(index) {
+  const value = 0.8 + index * 0.09 + (((index * 4) % 7) - 2) * 0.21;
+  return Math.max(0, Math.min(value, 6.5));
+}
+
 const metricValues = buildMetricValues();
 metricValues.Fedje.arbeidsledige = null;
 metricValues.Modalen.ufore = null;
@@ -153,30 +199,52 @@ metricValues.Fedje.saksbehandlingstid = null;
 metricValues.Ulvik.sykefravaer = null;
 metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Lærdal.driftsresultat = null;
+metricValues.Austevoll.eiendomsskatt = null;
 
-const geoFeatures = (window.VESTLAND_GEOJSON?.features || []).map(feature => ({
-  ...feature,
-  properties: {
-    ...feature.properties,
-    kommunenavn: formatName(feature.properties.kommunenavn)
-  }
-})).sort((a, b) =>
-  municipalityOrder.indexOf(formatName(a.properties.kommunenavn)) -
-  municipalityOrder.indexOf(formatName(b.properties.kommunenavn))
-);
+const rawFeatures = (window.VESTLAND_GEOJSON?.features || [])
+  .map(feature => ({
+    ...feature,
+    properties: {
+      ...feature.properties,
+      kommunenavn: normalizeName(feature.properties.kommunenavn)
+    }
+  }))
+  .filter(feature => municipalityOrder.includes(feature.properties.kommunenavn))
+  .sort((left, right) =>
+    municipalityOrder.indexOf(left.properties.kommunenavn) -
+    municipalityOrder.indexOf(right.properties.kommunenavn)
+  );
 
-const bounds = computeBounds(geoFeatures);
-const projectedFeatures = geoFeatures.map(feature => {
-  const projectedGeometry = projectGeometry(feature.geometry);
+const countyFeature = window.VESTLAND_COUNTY
+  ? {
+      ...window.VESTLAND_COUNTY,
+      properties: {
+        ...window.VESTLAND_COUNTY.properties,
+        fylkesnavn: normalizeName(window.VESTLAND_COUNTY.properties?.fylkesnavn || "Vestland")
+      }
+    }
+  : null;
+
+const projection = buildProjection(rawFeatures, countyFeature);
+const projectedFeatures = rawFeatures.map(feature => {
+  const geometry = projectGeometry(feature.geometry, projection);
+  const primaryRing = largestRing(geometry);
   return {
     ...feature,
-    projectedGeometry,
-    path: geometryToPath(projectedGeometry),
-    centroid: geometryCentroid(projectedGeometry)
+    geometry,
+    path: geometryToPath(geometry),
+    centroid: ringCentroid(primaryRing),
+    area: ringArea(primaryRing)
   };
 });
 
+const countyPath = countyFeature
+  ? geometryToPath(projectGeometry(countyFeature.geometry, projection))
+  : null;
+
 let activeMetricKey = null;
+
+mapSvg.setAttribute("viewBox", `0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`);
 
 renderMetricButtons();
 renderMap();
@@ -188,17 +256,17 @@ resetButton.addEventListener("click", () => {
 });
 
 function renderMetricButtons() {
-  const buttons = Object.entries(metrics).map(([key, metric]) => {
+  const buttons = Object.entries(metrics).map(([metricKey, metric]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "metric-button";
-    button.dataset.metric = key;
+    button.dataset.metric = metricKey;
     button.innerHTML = `
       <span class="metric-button__title">${metric.title}</span>
       <span class="metric-button__meta">${metric.description}</span>
     `;
     button.addEventListener("click", () => {
-      activeMetricKey = activeMetricKey === key ? null : key;
+      activeMetricKey = activeMetricKey === metricKey ? null : metricKey;
       updateUI();
     });
     metricList.appendChild(button);
@@ -211,6 +279,13 @@ function renderMetricButtons() {
 function renderMap() {
   mapSvg.innerHTML = "";
 
+  if (countyPath) {
+    const countyOutline = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    countyOutline.setAttribute("d", countyPath);
+    countyOutline.setAttribute("class", "county-outline");
+    mapSvg.appendChild(countyOutline);
+  }
+
   projectedFeatures.forEach(feature => {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", feature.path);
@@ -219,13 +294,23 @@ function renderMap() {
     path.setAttribute("tabindex", "0");
     path.setAttribute("aria-label", feature.properties.kommunenavn);
     mapSvg.appendChild(path);
+  });
 
+  projectedFeatures.forEach(feature => {
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttribute("x", feature.centroid[0]);
-    label.setAttribute("y", feature.centroid[1]);
+    const [offsetX, offsetY] = labelOffsets[feature.properties.kommunenavn] || [0, 0];
+    label.setAttribute("x", (feature.centroid[0] + offsetX).toFixed(1));
+    label.setAttribute("y", (feature.centroid[1] + offsetY).toFixed(1));
     label.setAttribute("class", "municipality-label");
     label.dataset.name = feature.properties.kommunenavn;
-    label.textContent = feature.properties.kommunenavn;
+
+    if (feature.area < 220) {
+      label.classList.add("municipality-label--tiny");
+    } else if (feature.area < 520) {
+      label.classList.add("municipality-label--small");
+    }
+
+    label.textContent = labelShortNames[feature.properties.kommunenavn] || feature.properties.kommunenavn;
     mapSvg.appendChild(label);
   });
 
@@ -234,6 +319,7 @@ function renderMap() {
 
 function renderTable() {
   tableBody.innerHTML = "";
+
   municipalityOrder.forEach(name => {
     const row = document.createElement("tr");
     const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
@@ -250,7 +336,7 @@ function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
-    : "Kommunene starter uten farge. Tallene under er eksempeldata til vi kobler på ekte statistikk.";
+    : "Kartet bruker nå Vestland-data fra robhops kommunefiler. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
     ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
@@ -269,16 +355,16 @@ function updateButtonState(buttons) {
 
 function updateMapColors() {
   mapSvg.querySelectorAll(".municipality").forEach(path => {
-    const name = path.dataset.name;
-    const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
-    const fill = metricData ? statusToColor(metricData.status) : "var(--map-base)";
-    path.style.fill = fill;
+    const municipalityName = path.dataset.name;
+    const metricData = activeMetricKey ? getMetricEntry(municipalityName, activeMetricKey) : null;
+    path.style.fill = metricData ? statusToColor(metricData.status) : "var(--map-base)";
   });
 
   mapSvg.querySelectorAll(".municipality-label").forEach(label => {
-    const name = label.dataset.name;
-    const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
-    label.classList.toggle("is-dark", !metricData || metricData.status === "medium" || metricData.status === "missing");
+    const municipalityName = label.dataset.name;
+    const metricData = activeMetricKey ? getMetricEntry(municipalityName, activeMetricKey) : null;
+    const darkLabel = !metricData || metricData.status === "medium" || metricData.status === "missing";
+    label.classList.toggle("is-dark", darkLabel);
   });
 }
 
@@ -331,6 +417,12 @@ function getStatus(metricKey, value) {
     return "bad";
   }
 
+  if (metricKey === "eiendomsskatt") {
+    if (value < 2.0) return "good";
+    if (value <= 4.0) return "medium";
+    return "bad";
+  }
+
   if (value < 120) return "good";
   if (value <= 180) return "medium";
   return "bad";
@@ -360,58 +452,73 @@ function statusToColor(status) {
   return "var(--missing)";
 }
 
-function formatName(name) {
-  return displayNameFixes[name] || name;
+function normalizeName(value) {
+  return nameAliases[value] || value;
 }
 
-function computeBounds(features) {
-  const allPoints = [];
-  features.forEach(feature => collectPoints(feature.geometry.coordinates, allPoints));
+function buildProjection(features, county) {
+  const lonLatPoints = [];
+  features.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
+  if (county) {
+    collectCoordinates(county.geometry.coordinates, lonLatPoints);
+  }
 
-  const lons = allPoints.map(point => point[0]);
-  const lats = allPoints.map(point => point[1]);
+  const mercatorPoints = lonLatPoints.map(([lon, lat]) => [lon, mercatorY(lat)]);
+  const xValues = mercatorPoints.map(point => point[0]);
+  const yValues = mercatorPoints.map(point => point[1]);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const scale = Math.min(
+    (VIEW_WIDTH - MAP_PADDING * 2) / (maxX - minX),
+    (VIEW_HEIGHT - MAP_PADDING * 2) / (maxY - minY)
+  );
+  const extraX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
+  const extraY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
 
   return {
-    minLon: Math.min(...lons),
-    maxLon: Math.max(...lons),
-    minLat: Math.min(...lats),
-    maxLat: Math.max(...lats)
+    scale,
+    minX,
+    maxY,
+    offsetX: extraX,
+    offsetY: extraY
   };
 }
 
-function collectPoints(coords, result) {
-  if (typeof coords[0] === "number") {
-    result.push(coords);
+function mercatorY(latitude) {
+  const radians = latitude * (Math.PI / 180);
+  return Math.log(Math.tan(Math.PI / 4 + radians / 2));
+}
+
+function collectCoordinates(coordinates, result) {
+  if (typeof coordinates[0] === "number") {
+    result.push(coordinates);
     return;
   }
 
-  coords.forEach(item => collectPoints(item, result));
+  coordinates.forEach(item => collectCoordinates(item, result));
 }
 
-function projectPoint(point) {
-  const padding = 36;
-  const width = 720 - padding * 2;
-  const height = 980 - padding * 2;
-  const lonSpan = bounds.maxLon - bounds.minLon;
-  const latSpan = bounds.maxLat - bounds.minLat;
-  const scale = Math.min(width / lonSpan, height / latSpan);
-
-  const x = (point[0] - bounds.minLon) * scale + padding;
-  const y = (bounds.maxLat - point[1]) * scale + padding;
+function projectPoint([longitude, latitude], projection) {
+  const x = (longitude - projection.minX) * projection.scale + projection.offsetX;
+  const y = (projection.maxY - mercatorY(latitude)) * projection.scale + projection.offsetY;
   return [x, y];
 }
 
-function projectGeometry(geometry) {
+function projectGeometry(geometry, projection) {
   if (geometry.type === "Polygon") {
     return {
       type: "Polygon",
-      coordinates: geometry.coordinates.map(ring => ring.map(projectPoint))
+      coordinates: geometry.coordinates.map(ring => ring.map(point => projectPoint(point, projection)))
     };
   }
 
   return {
     type: "MultiPolygon",
-    coordinates: geometry.coordinates.map(polygon => polygon.map(ring => ring.map(projectPoint)))
+    coordinates: geometry.coordinates.map(
+      polygon => polygon.map(ring => ring.map(point => projectPoint(point, projection)))
+    )
   };
 }
 
@@ -424,30 +531,34 @@ function geometryToPath(geometry) {
 }
 
 function polygonToPath(polygon) {
-  return polygon.map(ring => {
-    const commands = ring.map((point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`);
-    return `${commands.join(" ")} Z`;
-  }).join(" ");
+  return polygon
+    .map(ring => {
+      const commands = ring.map(
+        (point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`
+      );
+      return `${commands.join(" ")} Z`;
+    })
+    .join(" ");
 }
 
-function geometryCentroid(geometry) {
+function largestRing(geometry) {
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
-  let largestArea = -1;
-  let centroid = [0, 0];
+  let biggestRing = polygons[0][0];
+  let biggestArea = 0;
 
   polygons.forEach(polygon => {
     const ring = polygon[0];
-    const area = polygonArea(ring);
-    if (area > largestArea) {
-      largestArea = area;
-      centroid = polygonCentroid(ring);
+    const area = ringArea(ring);
+    if (area > biggestArea) {
+      biggestArea = area;
+      biggestRing = ring;
     }
   });
 
-  return centroid;
+  return biggestRing;
 }
 
-function polygonArea(ring) {
+function ringArea(ring) {
   let area = 0;
   for (let index = 0; index < ring.length - 1; index += 1) {
     const [x1, y1] = ring[index];
@@ -457,7 +568,7 @@ function polygonArea(ring) {
   return Math.abs(area / 2);
 }
 
-function polygonCentroid(ring) {
+function ringCentroid(ring) {
   let areaFactor = 0;
   let x = 0;
   let y = 0;
