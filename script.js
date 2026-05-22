@@ -1,3 +1,6 @@
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const mapSvg = document.querySelector("#vestland-map");
 const metricList = document.querySelector("#metric-list");
 const resetButton = document.querySelector("#reset-button");
 const mapTitle = document.querySelector("#map-title");
@@ -20,6 +23,10 @@ const homeButton = document.querySelector("#home-button");
 const zoomInButton = document.querySelector("#zoom-in-button");
 const zoomOutButton = document.querySelector("#zoom-out-button");
 
+const VIEW_WIDTH = 820;
+const VIEW_HEIGHT = 1180;
+const MAP_PADDING = 22;
+
 const municipalityOrder = [
   "Alver", "Askvoll", "Askøy", "Aurland", "Austevoll", "Austrheim", "Bergen",
   "Bjørnafjorden", "Bremanger", "Bømlo", "Eidfjord", "Etne", "Fedje", "Fitjar",
@@ -30,6 +37,37 @@ const municipalityOrder = [
   "Årdal", "Øygarden"
 ];
 
+const labelOffsets = {
+  Askøy: [-14, -6],
+  Aurland: [16, 4],
+  Austrheim: [-10, 8],
+  Austevoll: [-20, 16],
+  Bergen: [6, 10],
+  Bjørnafjorden: [14, 14],
+  Bømlo: [-14, 14],
+  Eidfjord: [16, -8],
+  Fedje: [-28, -4],
+  Fitjar: [-6, 10],
+  Kinn: [-10, -14],
+  Kvam: [16, 10],
+  Lærdal: [18, 8],
+  Modalen: [12, -8],
+  Osterøy: [14, -6],
+  Samnanger: [18, 10],
+  Solund: [-26, -6],
+  Stord: [4, 12],
+  Sveio: [-8, 18],
+  Tysnes: [8, 14],
+  Ulvik: [18, -4],
+  Vaksdal: [12, 0],
+  Øygarden: [-24, -4],
+  Årdal: [22, 0]
+};
+
+const labelShortNames = {
+  Bjørnafjorden: "Bjørnafj."
+};
+
 const thresholdsText = {
   good: "Grønn",
   medium: "Gul",
@@ -37,86 +75,72 @@ const thresholdsText = {
   missing: "Mangler data"
 };
 
+const defaultPalette = [
+  "#18d6dc", "#b300ff", "#ff00a3", "#fff100",
+  "#ff1919", "#002cff", "#ff9a17", "#00f018",
+  "#f100d8"
+];
+
+const defaultColorByRegion = {
+  Stad: 0, Stryn: 0, Gloppen: 0, Bremanger: 0,
+  Kinn: 1, Sunnfjord: 1, Askvoll: 1, Fjaler: 1,
+  Hyllestad: 2, Høyanger: 2, Gulen: 2,
+  Fedje: 3, Austrheim: 3, Masfjorden: 3, Alver: 3, Modalen: 3, Osterøy: 3, Vaksdal: 3,
+  Askøy: 4, Bergen: 4, Samnanger: 4, Bjørnafjorden: 4, Austevoll: 4, Øygarden: 4,
+  Bømlo: 5, Fitjar: 5, Stord: 5, Sveio: 5, Tysnes: 5, Kvinnherad: 5, Etne: 5,
+  Luster: 6, Sogndal: 6, Vik: 6, Aurland: 6, Lærdal: 6, Årdal: 6,
+  Voss: 8,
+  Ulvik: 7, Eidfjord: 7, Ullensvang: 7, Kvam: 7
+};
+
 const metrics = {
   arbeidsledige: {
     title: "Arbeidsledige",
     description: "Andel registrerte ledige i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Under 2,2 %",
-      medium: "2,2 % til 3,0 %",
-      bad: "Over 3,0 %"
-    }
+    thresholds: { good: "Under 2,2 %", medium: "2,2 % til 3,0 %", bad: "Over 3,0 %" }
   },
   ufore: {
     title: "Uføre",
     description: "Andel uføre i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Under 8,5 %",
-      medium: "8,5 % til 11,0 %",
-      bad: "Over 11,0 %"
-    }
+    thresholds: { good: "Under 8,5 %", medium: "8,5 % til 11,0 %", bad: "Over 11,0 %" }
   },
   ungeUfore: {
     title: "Unge uføre",
     description: "Andel unge uføre i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Under 2,4 %",
-      medium: "2,4 % til 3,2 %",
-      bad: "Over 3,2 %"
-    }
+    thresholds: { good: "Under 2,4 %", medium: "2,4 % til 3,2 %", bad: "Over 3,2 %" }
   },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
     description: "Antall dager for behandling av private planer.",
     format: value => `${Math.round(value)} dager`,
-    thresholds: {
-      good: "Under 120 dager",
-      medium: "120 til 180 dager",
-      bad: "Over 180 dager"
-    }
+    thresholds: { good: "Under 120 dager", medium: "120 til 180 dager", bad: "Over 180 dager" }
   },
   sykefravaer: {
     title: "Sykefravær",
     description: "Andel sykefravær i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Under 6,8 %",
-      medium: "6,8 % til 8,0 %",
-      bad: "Over 8,0 %"
-    }
+    thresholds: { good: "Under 6,8 %", medium: "6,8 % til 8,0 %", bad: "Over 8,0 %" }
   },
   befolkningsvekst: {
     title: "Befolkningsvekst i prosent de siste tre årene",
     description: "Endring i folketall siste tre år.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Over 2,5 %",
-      medium: "0 % til 2,5 %",
-      bad: "Under 0 %"
-    }
+    thresholds: { good: "Over 2,5 %", medium: "0 % til 2,5 %", bad: "Under 0 %" }
   },
   driftsresultat: {
     title: "Driftsresultat kommunen",
     description: "Netto driftsresultat i prosent.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: {
-      good: "Over 1,8 %",
-      medium: "0 % til 1,8 %",
-      bad: "Under 0 %"
-    }
+    thresholds: { good: "Over 1,8 %", medium: "0 % til 1,8 %", bad: "Under 0 %" }
   },
   eiendomsskatt: {
     title: "Eiendomsskatt",
     description: "Promillesats eller tilsvarende nivå.",
     format: value => `${value.toFixed(1).replace(".", ",")} ‰`,
-    thresholds: {
-      good: "Under 2,0 ‰",
-      medium: "2,0 ‰ til 4,0 ‰",
-      bad: "Over 4,0 ‰"
-    }
+    thresholds: { good: "Under 2,0 ‰", medium: "2,0 ‰ til 4,0 ‰", bad: "Over 4,0 ‰" }
   }
 };
 
@@ -166,14 +190,6 @@ metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Lærdal.driftsresultat = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
-let activeMetricKey = null;
-let selectedMunicipality = null;
-let searchTerm = "";
-let municipalityLayer;
-let boundaryLayer;
-let map;
-const layerByName = new Map();
-
 const municipalityFeatures = (window.VESTLAND_GEOJSON?.features || [])
   .filter(feature => municipalityOrder.includes(feature.properties.kommunenavn))
   .sort((left, right) =>
@@ -181,125 +197,68 @@ const municipalityFeatures = (window.VESTLAND_GEOJSON?.features || [])
     municipalityOrder.indexOf(right.properties.kommunenavn)
   );
 
+const boundaryFeatures = (window.VESTLAND_BOUNDARIES?.features || [])
+  .filter(feature => feature.properties.avgrensningstype === "Kommunegrense" || feature.properties.avgrensningstype === "Fylkesgrense");
+
+const projection = buildProjection(municipalityFeatures);
+const projectedMunicipalities = municipalityFeatures.map(feature => {
+  const geometry = projectGeometry(feature.geometry, projection);
+  const mainRing = largestRing(geometry);
+  return {
+    ...feature,
+    projectedGeometry: geometry,
+    path: geometryToPath(geometry),
+    centroid: ringCentroid(mainRing),
+    area: ringArea(mainRing)
+  };
+});
+
+const projectedBoundaries = boundaryFeatures.map(feature => ({
+  kind: feature.properties.avgrensningstype,
+  path: lineToPath(projectLineGeometry(feature.geometry, projection))
+}));
+
+let activeMetricKey = null;
+let selectedMunicipality = null;
+let searchTerm = "";
+let mapContent = null;
+let zoomLevel = 1;
+
+mapSvg.setAttribute("viewBox", `0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`);
+mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
 renderMetricButtons();
+renderMap();
 renderTable();
-initMap();
 updateSummary();
 
 resetButton.addEventListener("click", () => {
   activeMetricKey = null;
   selectedMunicipality = null;
+  searchTerm = "";
+  searchInput.value = "";
   updateUI();
 });
 
 searchInput.addEventListener("input", event => {
   searchTerm = event.target.value.trim().toLowerCase();
   updateMapStyles();
-  zoomToSearchResult();
 });
 
-homeButton.addEventListener("click", () => fitVestlandBounds());
-zoomInButton.addEventListener("click", () => map.zoomIn());
-zoomOutButton.addEventListener("click", () => map.zoomOut());
+homeButton.addEventListener("click", () => {
+  zoomLevel = 1;
+  updateMapTransform();
+});
 
-function initMap() {
-  if (!window.L) {
-    mapTitle.textContent = "Leaflet kunne ikke lastes";
-    mapNote.textContent = "Kartbiblioteket lastes fra CDN. Sjekk nettverkstilkobling og prøv igjen.";
-    return;
-  }
+zoomInButton.addEventListener("click", () => {
+  zoomLevel = Math.min(zoomLevel + 0.18, 1.72);
+  updateMapTransform();
+});
 
-  map = L.map("vestland-map", {
-    zoomControl: false,
-    attributionControl: true,
-    preferCanvas: true,
-    minZoom: 6,
-    maxZoom: 13
-  });
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 13,
-    opacity: 0.38,
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
-
-  municipalityLayer = L.geoJSON({
-    type: "FeatureCollection",
-    features: municipalityFeatures
-  }, {
-    style: feature => municipalityStyle(feature),
-    onEachFeature: bindMunicipalityFeature
-  }).addTo(map);
-
-  boundaryLayer = L.geoJSON(window.VESTLAND_BOUNDARIES, {
-    interactive: false,
-    style: feature => ({
-      color: feature.properties.avgrensningstype === "Fylkesgrense" ? "#4a5568" : "#ffffff",
-      weight: feature.properties.avgrensningstype === "Fylkesgrense" ? 2.2 : 1.1,
-      opacity: feature.properties.avgrensningstype === "Fylkesgrense" ? 0.65 : 0.9,
-      lineCap: "round",
-      lineJoin: "round"
-    })
-  }).addTo(map);
-
-  fitVestlandBounds();
-}
-
-function bindMunicipalityFeature(feature, layer) {
-  const name = feature.properties.kommunenavn;
-  layerByName.set(name, layer);
-
-  layer.bindTooltip(name, {
-    permanent: true,
-    direction: "center",
-    className: "municipality-tooltip"
-  });
-
-  layer.bindPopup(() => renderPopupContent(name), {
-    className: "municipality-popup",
-    maxWidth: 280
-  });
-
-  layer.on("click", () => {
-    selectedMunicipality = name;
-    updateSummary();
-    updateMapStyles();
-  });
-
-  layer.on("mouseover", () => {
-    layer.setStyle({ weight: 2.4, opacity: 1 });
-    layer.bringToFront();
-    boundaryLayer.bringToFront();
-  });
-
-  layer.on("mouseout", () => {
-    updateMapStyles();
-  });
-}
-
-function fitVestlandBounds() {
-  if (!municipalityLayer) {
-    return;
-  }
-
-  map.fitBounds(municipalityLayer.getBounds(), {
-    paddingTopLeft: [24, 110],
-    paddingBottomRight: [24, 24],
-    animate: false
-  });
-}
-
-function zoomToSearchResult() {
-  if (!searchTerm) {
-    return;
-  }
-
-  const match = municipalityOrder.find(name => name.toLowerCase().includes(searchTerm));
-  const layer = match ? layerByName.get(match) : null;
-  if (layer) {
-    map.fitBounds(layer.getBounds(), { padding: [120, 120], maxZoom: 10 });
-  }
-}
+zoomOutButton.addEventListener("click", () => {
+  zoomLevel = Math.max(zoomLevel - 0.18, 0.82);
+  updateMapTransform();
+});
 
 function renderMetricButtons() {
   Object.entries(metrics).forEach(([metricKey, metric]) => {
@@ -323,6 +282,79 @@ function renderMetricButtons() {
   });
 }
 
+function renderMap() {
+  mapSvg.innerHTML = "";
+
+  mapContent = document.createElementNS(SVG_NS, "g");
+  mapContent.setAttribute("class", "map-content");
+  mapSvg.appendChild(mapContent);
+
+  const municipalityGroup = document.createElementNS(SVG_NS, "g");
+  municipalityGroup.setAttribute("class", "municipality-layer");
+  mapContent.appendChild(municipalityGroup);
+
+  projectedMunicipalities.forEach(feature => {
+    const name = feature.properties.kommunenavn;
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", feature.path);
+    path.setAttribute("class", "municipality");
+    path.setAttribute("fill-rule", "evenodd");
+    path.dataset.name = name;
+    path.setAttribute("tabindex", "0");
+
+    const title = document.createElementNS(SVG_NS, "title");
+    title.textContent = name;
+    path.appendChild(title);
+
+    path.addEventListener("click", () => {
+      selectedMunicipality = selectedMunicipality === name ? null : name;
+      updateMapStyles();
+      updateSummary();
+    });
+
+    path.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectedMunicipality = selectedMunicipality === name ? null : name;
+        updateMapStyles();
+        updateSummary();
+      }
+    });
+
+    municipalityGroup.appendChild(path);
+  });
+
+  const boundaryGroup = document.createElementNS(SVG_NS, "g");
+  boundaryGroup.setAttribute("class", "boundary-layer");
+  mapContent.appendChild(boundaryGroup);
+
+  projectedBoundaries.forEach(feature => {
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", feature.path);
+    path.setAttribute("class", feature.kind === "Fylkesgrense" ? "outer-boundary" : "boundary-line");
+    boundaryGroup.appendChild(path);
+  });
+
+  const labelGroup = document.createElementNS(SVG_NS, "g");
+  labelGroup.setAttribute("class", "label-layer");
+  mapContent.appendChild(labelGroup);
+
+  projectedMunicipalities.forEach(feature => {
+    const name = feature.properties.kommunenavn;
+    const [offsetX, offsetY] = labelOffsets[name] || [0, 0];
+    const label = document.createElementNS(SVG_NS, "text");
+    label.setAttribute("x", (feature.centroid[0] + offsetX).toFixed(1));
+    label.setAttribute("y", (feature.centroid[1] + offsetY).toFixed(1));
+    label.setAttribute("class", labelClass(feature.area));
+    label.dataset.name = name;
+    label.textContent = labelShortNames[name] || name;
+    labelGroup.appendChild(label);
+  });
+
+  updateMapStyles();
+  updateMapTransform();
+}
+
 function renderTable() {
   tableBody.innerHTML = "";
 
@@ -342,7 +374,7 @@ function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
-    : "Kartet viser Vestland kommune for kommune. Velg statistikk for fargelegging.";
+    : "Kartet tegnes direkte fra GeoJSON-filene dine, kommune for kommune.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
     ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
@@ -361,38 +393,34 @@ function updateButtonState() {
 }
 
 function updateMapStyles() {
-  if (!municipalityLayer) {
+  mapSvg.querySelectorAll(".municipality").forEach(path => {
+    const name = path.dataset.name;
+    const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
+    const isMatch = matchesSearch(name);
+    const isSelected = selectedMunicipality === name;
+
+    path.style.fill = metricData ? statusToColor(metricData.status) : defaultMunicipalityColor(name);
+    path.style.opacity = isMatch ? "1" : "0.22";
+    path.classList.toggle("is-selected", isSelected);
+  });
+
+  mapSvg.querySelectorAll(".municipality-label").forEach(label => {
+    label.style.opacity = matchesSearch(label.dataset.name) ? "1" : "0.2";
+    label.classList.toggle("is-selected", selectedMunicipality === label.dataset.name);
+  });
+}
+
+function updateMapTransform() {
+  if (!mapContent) {
     return;
   }
 
-  municipalityLayer.eachLayer(layer => {
-    layer.setStyle(municipalityStyle(layer.feature));
-  });
-
-  boundaryLayer?.bringToFront();
-}
-
-function municipalityStyle(feature) {
-  const name = feature.properties.kommunenavn;
-  const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
-  const isMatch = matchesSearch(name);
-  const isSelected = selectedMunicipality === name;
-
-  return {
-    fillColor: metricData ? statusToColor(metricData.status) : "#dfe8f4",
-    color: isSelected ? "#1f2f46" : "#ffffff",
-    weight: isSelected ? 2.4 : 0.9,
-    opacity: isMatch ? 1 : 0.28,
-    fillOpacity: isMatch ? 0.72 : 0.18
-  };
-}
-
-function matchesSearch(name) {
-  if (!searchTerm) {
-    return true;
-  }
-
-  return name.toLowerCase().includes(searchTerm);
+  const centerX = VIEW_WIDTH / 2;
+  const centerY = VIEW_HEIGHT / 2;
+  mapContent.setAttribute(
+    "transform",
+    `translate(${centerX} ${centerY}) scale(${zoomLevel}) translate(${-centerX} ${-centerY})`
+  );
 }
 
 function updateSummary() {
@@ -426,6 +454,27 @@ function countStatuses(metricKey) {
   });
 
   return counts;
+}
+
+function labelClass(area) {
+  if (area < 220) {
+    return "municipality-label municipality-label--tiny";
+  }
+
+  if (area < 560) {
+    return "municipality-label municipality-label--small";
+  }
+
+  return "municipality-label";
+}
+
+function matchesSearch(name) {
+  return !searchTerm || name.toLowerCase().includes(searchTerm);
+}
+
+function defaultMunicipalityColor(name) {
+  const index = defaultColorByRegion[name] ?? 0;
+  return defaultPalette[index % defaultPalette.length];
 }
 
 function getMetricEntry(name, metricKey) {
@@ -512,28 +561,171 @@ function statusToColor(status) {
   return "var(--missing)";
 }
 
-function renderPopupContent(name) {
-  const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
-  const value = metricData ? formatMetricValue(activeMetricKey, metricData.value) : "Velg statistikk";
-  const status = metricData ? thresholdsText[metricData.status] : "Ingen valgt";
+function buildProjection(features) {
+  const lonLatPoints = [];
+  features.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
 
-  return `
-    <div class="popup-card">
-      <strong>${name} kommune</strong>
-      <dl>
-        <div>
-          <dt>Statistikk</dt>
-          <dd>${activeMetricKey ? metrics[activeMetricKey].title : "Ingen valgt"}</dd>
-        </div>
-        <div>
-          <dt>Verdi</dt>
-          <dd>${value}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>${status}</dd>
-        </div>
-      </dl>
-    </div>
-  `;
+  const latitudes = lonLatPoints.map(point => point[1]);
+  const centerLatitude = (Math.min(...latitudes) + Math.max(...latitudes)) / 2;
+  const projectedPoints = lonLatPoints.map(([lon, lat]) => [projectedX(lon, centerLatitude), projectedY(lat)]);
+  const xValues = projectedPoints.map(point => point[0]);
+  const yValues = projectedPoints.map(point => point[1]);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const scale = Math.min(
+    (VIEW_WIDTH - MAP_PADDING * 2) / (maxX - minX),
+    (VIEW_HEIGHT - MAP_PADDING * 2) / (maxY - minY)
+  );
+  const offsetX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
+  const offsetY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
+
+  return {
+    centerLatitude,
+    minX,
+    maxY,
+    offsetX,
+    offsetY,
+    scale
+  };
+}
+
+function projectedX(longitude, centerLatitude) {
+  return (longitude * Math.PI / 180) * Math.cos(centerLatitude * Math.PI / 180);
+}
+
+function projectedY(latitude) {
+  return latitude * Math.PI / 180;
+}
+
+function collectCoordinates(coordinates, result) {
+  if (!Array.isArray(coordinates)) {
+    return;
+  }
+
+  if (typeof coordinates[0] === "number") {
+    result.push(coordinates);
+    return;
+  }
+
+  coordinates.forEach(item => collectCoordinates(item, result));
+}
+
+function projectPoint([longitude, latitude], projection) {
+  return [
+    (projectedX(longitude, projection.centerLatitude) - projection.minX) * projection.scale + projection.offsetX,
+    (projection.maxY - projectedY(latitude)) * projection.scale + projection.offsetY
+  ];
+}
+
+function projectGeometry(geometry, projection) {
+  if (geometry.type === "Polygon") {
+    return {
+      type: "Polygon",
+      coordinates: geometry.coordinates.map(ring => ring.map(point => projectPoint(point, projection)))
+    };
+  }
+
+  return {
+    type: "MultiPolygon",
+    coordinates: geometry.coordinates.map(
+      polygon => polygon.map(ring => ring.map(point => projectPoint(point, projection)))
+    )
+  };
+}
+
+function projectLineGeometry(geometry, projection) {
+  if (geometry.type === "LineString") {
+    return {
+      type: "LineString",
+      coordinates: geometry.coordinates.map(point => projectPoint(point, projection))
+    };
+  }
+
+  return {
+    type: "MultiLineString",
+    coordinates: geometry.coordinates.map(line => line.map(point => projectPoint(point, projection)))
+  };
+}
+
+function geometryToPath(geometry) {
+  if (geometry.type === "Polygon") {
+    return polygonToPath(geometry.coordinates);
+  }
+
+  return geometry.coordinates.map(polygon => polygonToPath(polygon)).join(" ");
+}
+
+function polygonToPath(polygon) {
+  return polygon
+    .map(ring => {
+      const commands = ring.map(
+        (point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`
+      );
+      return `${commands.join(" ")} Z`;
+    })
+    .join(" ");
+}
+
+function lineToPath(geometry) {
+  if (geometry.type === "LineString") {
+    return lineCommands(geometry.coordinates);
+  }
+
+  return geometry.coordinates.map(line => lineCommands(line)).join(" ");
+}
+
+function lineCommands(line) {
+  return line
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`)
+    .join(" ");
+}
+
+function largestRing(geometry) {
+  const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+  let biggestRing = polygons[0][0];
+  let biggestArea = 0;
+
+  polygons.forEach(polygon => {
+    const ring = polygon[0];
+    const area = ringArea(ring);
+    if (area > biggestArea) {
+      biggestArea = area;
+      biggestRing = ring;
+    }
+  });
+
+  return biggestRing;
+}
+
+function ringArea(ring) {
+  let area = 0;
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    const [x1, y1] = ring[index];
+    const [x2, y2] = ring[index + 1];
+    area += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(area / 2);
+}
+
+function ringCentroid(ring) {
+  let areaFactor = 0;
+  let x = 0;
+  let y = 0;
+
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    const [x1, y1] = ring[index];
+    const [x2, y2] = ring[index + 1];
+    const factor = x1 * y2 - x2 * y1;
+    areaFactor += factor;
+    x += (x1 + x2) * factor;
+    y += (y1 + y2) * factor;
+  }
+
+  if (!areaFactor) {
+    return ring[0];
+  }
+
+  return [x / (3 * areaFactor), y / (3 * areaFactor)];
 }
