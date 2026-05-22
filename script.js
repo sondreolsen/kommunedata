@@ -9,56 +9,38 @@ const tableBody = document.querySelector("#table-body");
 
 const VIEW_WIDTH = 760;
 const VIEW_HEIGHT = 980;
-const MAP_PADDING = 28;
+const MAP_PADDING = 26;
 
 const municipalityOrder = [
   "Alver", "Askvoll", "Askøy", "Aurland", "Austevoll", "Austrheim", "Bergen",
   "Bjørnafjorden", "Bremanger", "Bømlo", "Eidfjord", "Etne", "Fedje", "Fitjar",
   "Fjaler", "Gloppen", "Gulen", "Hyllestad", "Høyanger", "Kinn", "Kvam",
   "Kvinnherad", "Luster", "Lærdal", "Masfjorden", "Modalen", "Osterøy",
-  "Samnanger", "Solund", "Sogndal", "Stad", "Stord", "Stryn", "Sunnfjord",
+  "Samnanger", "Sogndal", "Solund", "Stad", "Stord", "Stryn", "Sunnfjord",
   "Sveio", "Tysnes", "Ullensvang", "Ulvik", "Vaksdal", "Vik", "Voss",
   "Årdal", "Øygarden"
 ];
 
-const nameAliases = {
-  "AskÃ¸y": "Askøy",
-  "AskÃƒÂ¸y": "Askøy",
-  "BjÃ¸rnafjorden": "Bjørnafjorden",
-  "BjÃƒÂ¸rnafjorden": "Bjørnafjorden",
-  "BÃ¸mlo": "Bømlo",
-  "BÃƒÂ¸mlo": "Bømlo",
-  "HÃ¸yanger": "Høyanger",
-  "HÃƒÂ¸yanger": "Høyanger",
-  "LÃ¦rdal": "Lærdal",
-  "LÃƒÂ¦rdal": "Lærdal",
-  "OsterÃ¸y": "Osterøy",
-  "OsterÃƒÂ¸y": "Osterøy",
-  "Ã…rdal": "Årdal",
-  "Ãƒâ€¦rdal": "Årdal",
-  "Ã˜ygarden": "Øygarden",
-  "ÃƒËœygarden": "Øygarden"
-};
-
 const labelOffsets = {
-  Askøy: [-8, -8],
+  Askøy: [-10, -6],
   Austrheim: [0, -10],
   Austevoll: [0, 14],
-  Bergen: [0, 7],
-  Bjørnafjorden: [18, 6],
+  Bergen: [0, 6],
+  Bjørnafjorden: [22, 6],
   Bømlo: [0, 10],
-  Fedje: [0, -8],
-  Fitjar: [10, 8],
-  Kvam: [10, 10],
+  Eidfjord: [0, -6],
+  Fedje: [0, -7],
+  Fitjar: [12, 8],
+  Kvam: [14, 10],
   Modalen: [0, -8],
-  Osterøy: [16, -8],
-  Samnanger: [20, 10],
+  Osterøy: [17, -8],
+  Samnanger: [22, 9],
   Stord: [12, 6],
   Sveio: [0, 10],
   Tysnes: [18, 12],
-  Ulvik: [10, 0],
+  Ulvik: [12, -2],
   Vaksdal: [12, 0],
-  Øygarden: [-18, 0]
+  Øygarden: [-18, -2]
 };
 
 const labelShortNames = {
@@ -202,45 +184,30 @@ metricValues.Lærdal.driftsresultat = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
 const rawFeatures = (window.VESTLAND_GEOJSON?.features || [])
-  .map(feature => ({
-    ...feature,
-    properties: {
-      ...feature.properties,
-      kommunenavn: normalizeName(feature.properties.kommunenavn)
-    }
-  }))
   .filter(feature => municipalityOrder.includes(feature.properties.kommunenavn))
   .sort((left, right) =>
     municipalityOrder.indexOf(left.properties.kommunenavn) -
     municipalityOrder.indexOf(right.properties.kommunenavn)
   );
 
-const countyFeature = window.VESTLAND_COUNTY
-  ? {
-      ...window.VESTLAND_COUNTY,
-      properties: {
-        ...window.VESTLAND_COUNTY.properties,
-        fylkesnavn: normalizeName(window.VESTLAND_COUNTY.properties?.fylkesnavn || "Vestland")
-      }
-    }
-  : null;
-
-const projection = buildProjection(rawFeatures, countyFeature);
+const projection = buildProjection(rawFeatures, window.VESTLAND_BOUNDARIES?.features || []);
 const projectedFeatures = rawFeatures.map(feature => {
   const geometry = projectGeometry(feature.geometry, projection);
-  const primaryRing = largestRing(geometry);
+  const mainRing = largestRing(geometry);
   return {
     ...feature,
     geometry,
     path: geometryToPath(geometry),
-    centroid: ringCentroid(primaryRing),
-    area: ringArea(primaryRing)
+    centroid: ringCentroid(mainRing),
+    area: ringArea(mainRing)
   };
 });
 
-const countyPath = countyFeature
-  ? geometryToPath(projectGeometry(countyFeature.geometry, projection))
-  : null;
+const boundaryFeatures = (window.VESTLAND_BOUNDARIES?.features || []).map(feature => ({
+  ...feature,
+  projected: projectLineGeometry(feature.geometry, projection),
+  kind: feature.properties.avgrensningstype
+}));
 
 let activeMetricKey = null;
 
@@ -279,13 +246,6 @@ function renderMetricButtons() {
 function renderMap() {
   mapSvg.innerHTML = "";
 
-  if (countyPath) {
-    const countyOutline = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    countyOutline.setAttribute("d", countyPath);
-    countyOutline.setAttribute("class", "county-outline");
-    mapSvg.appendChild(countyOutline);
-  }
-
   projectedFeatures.forEach(feature => {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", feature.path);
@@ -293,6 +253,13 @@ function renderMap() {
     path.dataset.name = feature.properties.kommunenavn;
     path.setAttribute("tabindex", "0");
     path.setAttribute("aria-label", feature.properties.kommunenavn);
+    mapSvg.appendChild(path);
+  });
+
+  boundaryFeatures.forEach(feature => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", lineToPath(feature.projected));
+    path.setAttribute("class", feature.kind === "Fylkesgrense" ? "outer-boundary" : "boundary-line");
     mapSvg.appendChild(path);
   });
 
@@ -304,9 +271,9 @@ function renderMap() {
     label.setAttribute("class", "municipality-label");
     label.dataset.name = feature.properties.kommunenavn;
 
-    if (feature.area < 220) {
+    if (feature.area < 240) {
       label.classList.add("municipality-label--tiny");
-    } else if (feature.area < 520) {
+    } else if (feature.area < 540) {
       label.classList.add("municipality-label--small");
     }
 
@@ -336,7 +303,7 @@ function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
-    : "Kartet bruker nå Vestland-data fra robhops kommunefiler. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.";
+    : "Kartet bruker nå de offisielle Vestland-filene du la i mappen. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
     ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
@@ -452,16 +419,10 @@ function statusToColor(status) {
   return "var(--missing)";
 }
 
-function normalizeName(value) {
-  return nameAliases[value] || value;
-}
-
-function buildProjection(features, county) {
+function buildProjection(features, lineFeatures) {
   const lonLatPoints = [];
   features.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
-  if (county) {
-    collectCoordinates(county.geometry.coordinates, lonLatPoints);
-  }
+  lineFeatures.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
 
   const mercatorPoints = lonLatPoints.map(([lon, lat]) => [lon, mercatorY(lat)]);
   const xValues = mercatorPoints.map(point => point[0]);
@@ -474,15 +435,15 @@ function buildProjection(features, county) {
     (VIEW_WIDTH - MAP_PADDING * 2) / (maxX - minX),
     (VIEW_HEIGHT - MAP_PADDING * 2) / (maxY - minY)
   );
-  const extraX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
-  const extraY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
+  const offsetX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
+  const offsetY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
 
   return {
     scale,
     minX,
     maxY,
-    offsetX: extraX,
-    offsetY: extraY
+    offsetX,
+    offsetY
   };
 }
 
@@ -492,6 +453,10 @@ function mercatorY(latitude) {
 }
 
 function collectCoordinates(coordinates, result) {
+  if (!Array.isArray(coordinates)) {
+    return;
+  }
+
   if (typeof coordinates[0] === "number") {
     result.push(coordinates);
     return;
@@ -501,9 +466,10 @@ function collectCoordinates(coordinates, result) {
 }
 
 function projectPoint([longitude, latitude], projection) {
-  const x = (longitude - projection.minX) * projection.scale + projection.offsetX;
-  const y = (projection.maxY - mercatorY(latitude)) * projection.scale + projection.offsetY;
-  return [x, y];
+  return [
+    (longitude - projection.minX) * projection.scale + projection.offsetX,
+    (projection.maxY - mercatorY(latitude)) * projection.scale + projection.offsetY
+  ];
 }
 
 function projectGeometry(geometry, projection) {
@@ -518,6 +484,22 @@ function projectGeometry(geometry, projection) {
     type: "MultiPolygon",
     coordinates: geometry.coordinates.map(
       polygon => polygon.map(ring => ring.map(point => projectPoint(point, projection)))
+    )
+  };
+}
+
+function projectLineGeometry(geometry, projection) {
+  if (geometry.type === "LineString") {
+    return {
+      type: "LineString",
+      coordinates: geometry.coordinates.map(point => projectPoint(point, projection))
+    };
+  }
+
+  return {
+    type: "MultiLineString",
+    coordinates: geometry.coordinates.map(
+      line => line.map(point => projectPoint(point, projection))
     )
   };
 }
@@ -538,6 +520,20 @@ function polygonToPath(polygon) {
       );
       return `${commands.join(" ")} Z`;
     })
+    .join(" ");
+}
+
+function lineToPath(geometry) {
+  if (geometry.type === "LineString") {
+    return lineCommands(geometry.coordinates);
+  }
+
+  return geometry.coordinates.map(line => lineCommands(line)).join(" ");
+}
+
+function lineCommands(line) {
+  return line
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`)
     .join(" ");
 }
 

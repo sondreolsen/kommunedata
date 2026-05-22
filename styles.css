@@ -7,6 +7,7 @@
   --accent: #1b6b5c;
   --accent-soft: #d8efe7;
   --map-base: #f3f0e7;
+  --map-outline: #d2ddd0;
   --missing: #c9cbc8;
   --good: #0f8f7a;
   --medium: #ffc96b;
@@ -69,7 +70,7 @@ input {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.88fr);
   gap: 20px;
   align-items: start;
 }
@@ -155,12 +156,12 @@ input {
 
 .map-frame {
   background:
-    linear-gradient(180deg, rgba(216, 239, 231, 0.42), rgba(255, 255, 255, 0)),
+    radial-gradient(circle at top, rgba(216, 239, 231, 0.7), rgba(255, 255, 255, 0)),
     var(--paper);
   border: 1px solid var(--line);
   border-radius: 20px;
-  padding: 10px;
-  min-height: 780px;
+  padding: 8px;
+  min-height: 820px;
 }
 
 #vestland-map {
@@ -169,21 +170,33 @@ input {
   display: block;
 }
 
-.county-outline {
-  fill: #e7efe6;
-  stroke: rgba(27, 107, 92, 0.24);
-  stroke-width: 8;
-}
-
 .municipality {
   fill: var(--map-base);
-  stroke: #ffffff;
-  stroke-width: 1.8;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 0.5;
   transition: fill 160ms ease, transform 160ms ease;
 }
 
 .municipality:hover {
   transform: translateY(-1px);
+}
+
+.boundary-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.outer-boundary {
+  fill: none;
+  stroke: var(--map-outline);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
 }
 
 .municipality-label {
@@ -192,8 +205,8 @@ input {
   font-weight: 700;
   text-anchor: middle;
   paint-order: stroke;
-  stroke: rgba(35, 49, 39, 0.65);
-  stroke-width: 3.2px;
+  stroke: rgba(35, 49, 39, 0.68);
+  stroke-width: 3.3px;
   stroke-linejoin: round;
   pointer-events: none;
   letter-spacing: 0.01em;
@@ -201,7 +214,7 @@ input {
 
 .municipality-label.is-dark {
   fill: var(--ink);
-  stroke: rgba(255, 255, 255, 0.72);
+  stroke: rgba(255, 255, 255, 0.76);
 }
 
 .municipality-label--small {
@@ -209,7 +222,7 @@ input {
 }
 
 .municipality-label--tiny {
-  font-size: 9px;
+  font-size: 8.5px;
 }
 
 .metric-list {
@@ -352,7 +365,7 @@ tbody td {
 
   .municipality-label {
     font-size: 10px;
-    stroke-width: 2.8px;
+    stroke-width: 2.9px;
   }
 }
 
@@ -379,7 +392,7 @@ tbody td {
 
   .municipality-label {
     font-size: 8px;
-    stroke-width: 2.4px;
+    stroke-width: 2.3px;
   }
 
   .municipality-label--small,
