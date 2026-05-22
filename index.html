@@ -7,55 +7,160 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="page-shell">
-    <header class="page-header">
-      <p class="eyebrow">Vestland fylke</p>
-      <h1>Kommunenes</h1>
-      <p class="intro">
-        Klikk på en statistikk til høyre for å farge kommunene og se tallene i tabellen under.
-      </p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="brand-mark__shape brand-mark__shape--one"></span>
+          <span class="brand-mark__shape brand-mark__shape--two"></span>
+        </div>
+        <div class="brand-copy">
+          <strong>Kommunedata</strong>
+          <span>Vestland oversikt</span>
+        </div>
+      </div>
+
+      <nav class="topnav" aria-label="Hovedmeny">
+        <a class="topnav__link is-active" href="#">Oversikt</a>
+        <a class="topnav__link" href="#">Kommuner</a>
+        <a class="topnav__link" href="#">Statistikk</a>
+        <a class="topnav__link" href="#">Sammenlign</a>
+        <a class="topnav__link" href="#">Rapporter</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-button" type="button" aria-label="Innstillinger">◌</button>
+        <button class="icon-button" type="button" aria-label="Hjelp">?</button>
+        <button class="share-button" type="button">Del</button>
+      </div>
     </header>
 
-    <main class="layout">
-      <section class="map-panel">
-        <div class="map-card">
-          <div class="map-card__header">
-            <div>
-              <p class="section-label">Kart</p>
-              <h2 id="map-title">Velg en statistikk</h2>
+    <div class="workspace">
+      <aside class="side-nav" aria-label="Sidemenu">
+        <button class="side-nav__item is-active" type="button">
+          <span class="side-nav__icon">⌖</span>
+          <span>Kart</span>
+        </button>
+        <button class="side-nav__item" type="button">
+          <span class="side-nav__icon">▤</span>
+          <span>Tabell</span>
+        </button>
+        <button class="side-nav__item" type="button">
+          <span class="side-nav__icon">≣</span>
+          <span>Rangering</span>
+        </button>
+        <button class="side-nav__item" type="button">
+          <span class="side-nav__icon">↗</span>
+          <span>Trender</span>
+        </button>
+        <button class="side-nav__item" type="button">
+          <span class="side-nav__icon">↓</span>
+          <span>Last ned</span>
+        </button>
+      </aside>
+
+      <main class="map-stage">
+        <section class="map-panel">
+          <div class="map-toolbar">
+            <label class="search-field" for="municipality-search">
+              <span class="search-field__icon">⌕</span>
+              <input id="municipality-search" type="search" placeholder="Søk etter kommune">
+            </label>
+
+            <div class="map-tools">
+              <button class="tool-button" type="button" aria-label="Hjem">⌂</button>
+              <button class="tool-button" type="button" aria-label="Zoom inn">+</button>
+              <button class="tool-button" type="button" aria-label="Zoom ut">−</button>
             </div>
-            <p class="map-note" id="map-note">
-              Kartet er nå bygget på offisielle Vestland-geometrier. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.
+          </div>
+
+          <div class="map-surface">
+            <div class="map-surface__backdrop"></div>
+            <svg id="vestland-map" role="img" aria-labelledby="map-title"></svg>
+
+            <div class="map-header-card">
+              <p class="eyebrow">Kart</p>
+              <h1 id="map-title">Velg en statistikk</h1>
+              <p id="map-note">
+                Kartet bruker offisielle Vestland-geometrier. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.
+              </p>
+            </div>
+
+            <div class="legend-card">
+              <strong>Tegnforklaring</strong>
+              <div class="legend">
+                <span class="legend__item"><i class="legend__swatch legend__swatch--good"></i>Positiv utvikling</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--medium"></i>Nøytral utvikling</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--bad"></i>Utfordrende utvikling</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--missing"></i>Mangler data</span>
+              </div>
+            </div>
+
+            <div class="map-focus-card" id="map-focus-card">
+              <strong id="focus-title">Vestland</strong>
+              <dl class="focus-stats">
+                <div>
+                  <dt>Valgt statistikk</dt>
+                  <dd id="focus-metric">Ingen valgt</dd>
+                </div>
+                <div>
+                  <dt>Kommuner i visning</dt>
+                  <dd id="focus-count">43</dd>
+                </div>
+                <div>
+                  <dt>Beste kategori</dt>
+                  <dd id="focus-good">0</dd>
+                </div>
+                <div>
+                  <dt>Utfordrende kategori</dt>
+                  <dd id="focus-bad">0</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <aside class="insight-panel">
+          <div class="insight-card">
+            <p class="eyebrow">Velg statistikk</p>
+            <h2>Statistikkpanel</h2>
+            <p class="insight-card__intro">
+              Kartet fargelegges basert på valgt statistikk.
+            </p>
+            <div class="metric-list" id="metric-list"></div>
+            <button class="reset-button" id="reset-button" type="button">Nullstill kart</button>
+          </div>
+
+          <div class="summary-card">
+            <p class="eyebrow">Nøkkeltall</p>
+            <h2 id="summary-title">Vestland</h2>
+            <div class="summary-grid">
+              <article class="summary-stat">
+                <span>Grønn</span>
+                <strong id="summary-good">0</strong>
+              </article>
+              <article class="summary-stat">
+                <span>Gul</span>
+                <strong id="summary-medium">0</strong>
+              </article>
+              <article class="summary-stat">
+                <span>Rød</span>
+                <strong id="summary-bad">0</strong>
+              </article>
+            </div>
+            <p class="summary-note" id="summary-note">
+              Velg en statistikk for å se fordelingen mellom kommunene.
             </p>
           </div>
-
-          <div class="legend" id="legend">
-            <span class="legend__item"><i class="legend__swatch legend__swatch--missing"></i>Mangler data</span>
-            <span class="legend__item"><i class="legend__swatch legend__swatch--good"></i>Grønn</span>
-            <span class="legend__item"><i class="legend__swatch legend__swatch--medium"></i>Gul</span>
-            <span class="legend__item"><i class="legend__swatch legend__swatch--bad"></i>Rød</span>
-          </div>
-
-          <div class="map-frame">
-            <svg id="vestland-map" role="img" aria-labelledby="map-title"></svg>
-          </div>
-        </div>
-      </section>
-
-      <aside class="control-panel">
-        <div class="control-card">
-          <p class="section-label">Statistikker</p>
-          <div class="metric-list" id="metric-list"></div>
-          <button class="reset-button" id="reset-button" type="button">Nullstill kart</button>
-        </div>
-      </aside>
-    </main>
+        </aside>
+      </main>
+    </div>
 
     <section class="table-panel">
       <div class="table-card">
         <div class="table-card__header">
           <div>
-            <p class="section-label">Kommunetabell</p>
+            <p class="eyebrow">Kommunetabell</p>
             <h2 id="table-title">Ingen statistikk valgt</h2>
           </div>
           <p class="table-note" id="table-note">

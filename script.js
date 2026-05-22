@@ -6,6 +6,16 @@ const mapNote = document.querySelector("#map-note");
 const tableTitle = document.querySelector("#table-title");
 const tableNote = document.querySelector("#table-note");
 const tableBody = document.querySelector("#table-body");
+const summaryTitle = document.querySelector("#summary-title");
+const summaryGood = document.querySelector("#summary-good");
+const summaryMedium = document.querySelector("#summary-medium");
+const summaryBad = document.querySelector("#summary-bad");
+const summaryNote = document.querySelector("#summary-note");
+const focusMetric = document.querySelector("#focus-metric");
+const focusCount = document.querySelector("#focus-count");
+const focusGood = document.querySelector("#focus-good");
+const focusBad = document.querySelector("#focus-bad");
+const searchInput = document.querySelector("#municipality-search");
 
 const VIEW_WIDTH = 760;
 const VIEW_HEIGHT = 980;
@@ -57,7 +67,7 @@ const thresholdsText = {
 const metrics = {
   arbeidsledige: {
     title: "Arbeidsledige",
-    description: "Eksempeldata. Lavere andel er bedre.",
+    description: "Andel registrerte ledige i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 2,2 %",
@@ -67,7 +77,7 @@ const metrics = {
   },
   ufore: {
     title: "Uføre",
-    description: "Eksempeldata. Lavere andel er bedre.",
+    description: "Andel uføre i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 8,5 %",
@@ -77,7 +87,7 @@ const metrics = {
   },
   ungeUfore: {
     title: "Unge uføre",
-    description: "Eksempeldata. Lavere andel er bedre.",
+    description: "Andel unge uføre i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 2,4 %",
@@ -87,7 +97,7 @@ const metrics = {
   },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
-    description: "Eksempeldata. Lavere antall dager er bedre.",
+    description: "Antall dager for behandling av private planer.",
     format: value => `${Math.round(value)} dager`,
     thresholds: {
       good: "Under 120 dager",
@@ -97,7 +107,7 @@ const metrics = {
   },
   sykefravaer: {
     title: "Sykefravær",
-    description: "Eksempeldata. Lavere andel er bedre.",
+    description: "Andel sykefravær i kommunen.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Under 6,8 %",
@@ -107,7 +117,7 @@ const metrics = {
   },
   befolkningsvekst: {
     title: "Befolkningsvekst i prosent de siste tre årene",
-    description: "Eksempeldata. Høyere vekst er bedre.",
+    description: "Endring i folketall siste tre år.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Over 2,5 %",
@@ -117,7 +127,7 @@ const metrics = {
   },
   driftsresultat: {
     title: "Driftsresultat kommunen",
-    description: "Eksempeldata. Høyere resultat er bedre.",
+    description: "Netto driftsresultat i prosent.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: {
       good: "Over 1,8 %",
@@ -127,7 +137,7 @@ const metrics = {
   },
   eiendomsskatt: {
     title: "Eiendomsskatt",
-    description: "Eksempeldata. Lavere nivå er bedre.",
+    description: "Promillesats eller tilsvarende nivå.",
     format: value => `${value.toFixed(1).replace(".", ",")} ‰`,
     thresholds: {
       good: "Under 2,0 ‰",
@@ -210,16 +220,23 @@ const boundaryFeatures = (window.VESTLAND_BOUNDARIES?.features || []).map(featur
 }));
 
 let activeMetricKey = null;
+let searchTerm = "";
 
 mapSvg.setAttribute("viewBox", `0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`);
 
 renderMetricButtons();
 renderMap();
 renderTable();
+updateSummary();
 
 resetButton.addEventListener("click", () => {
   activeMetricKey = null;
   updateUI();
+});
+
+searchInput.addEventListener("input", event => {
+  searchTerm = event.target.value.trim().toLowerCase();
+  updateMapColors();
 });
 
 function renderMetricButtons() {
@@ -229,8 +246,11 @@ function renderMetricButtons() {
     button.className = "metric-button";
     button.dataset.metric = metricKey;
     button.innerHTML = `
-      <span class="metric-button__title">${metric.title}</span>
-      <span class="metric-button__meta">${metric.description}</span>
+      <span>
+        <span class="metric-button__title">${metric.title}</span>
+        <span class="metric-button__meta">${metric.description}</span>
+      </span>
+      <span class="metric-button__indicator" aria-hidden="true"></span>
     `;
     button.addEventListener("click", () => {
       activeMetricKey = activeMetricKey === metricKey ? null : metricKey;
@@ -303,7 +323,7 @@ function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
-    : "Kartet bruker nå de offisielle Vestland-filene du la i mappen. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.";
+    : "Kartet bruker offisielle Vestland-geometrier. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
     ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
@@ -312,6 +332,37 @@ function updateUI() {
   updateButtonState([...metricList.querySelectorAll(".metric-button")]);
   updateMapColors();
   renderTable();
+  updateSummary();
+}
+
+function updateSummary() {
+  const counts = countStatuses(activeMetricKey);
+  summaryTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Vestland";
+  summaryGood.textContent = counts.good;
+  summaryMedium.textContent = counts.medium;
+  summaryBad.textContent = counts.bad;
+  summaryNote.textContent = activeMetricKey
+    ? `Fordeling for ${metrics[activeMetricKey].title.toLowerCase()} i Vestland-kommunene.`
+    : "Velg en statistikk for å se fordelingen mellom kommunene.";
+
+  focusMetric.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen valgt";
+  focusCount.textContent = municipalityOrder.length;
+  focusGood.textContent = counts.good;
+  focusBad.textContent = counts.bad;
+}
+
+function countStatuses(metricKey) {
+  const counts = { good: 0, medium: 0, bad: 0, missing: 0 };
+  if (!metricKey) {
+    return counts;
+  }
+
+  municipalityOrder.forEach(name => {
+    const status = getMetricEntry(name, metricKey).status;
+    counts[status] += 1;
+  });
+
+  return counts;
 }
 
 function updateButtonState(buttons) {
@@ -324,7 +375,8 @@ function updateMapColors() {
   mapSvg.querySelectorAll(".municipality").forEach(path => {
     const municipalityName = path.dataset.name;
     const metricData = activeMetricKey ? getMetricEntry(municipalityName, activeMetricKey) : null;
-    path.style.fill = metricData ? statusToColor(metricData.status) : "var(--map-base)";
+    path.style.fill = metricData ? statusToColor(metricData.status) : "rgba(229, 236, 247, 0.88)";
+    path.style.opacity = matchesSearch(municipalityName) ? "1" : "0.32";
   });
 
   mapSvg.querySelectorAll(".municipality-label").forEach(label => {
@@ -332,7 +384,16 @@ function updateMapColors() {
     const metricData = activeMetricKey ? getMetricEntry(municipalityName, activeMetricKey) : null;
     const darkLabel = !metricData || metricData.status === "medium" || metricData.status === "missing";
     label.classList.toggle("is-dark", darkLabel);
+    label.style.opacity = matchesSearch(municipalityName) ? "1" : "0.24";
   });
+}
+
+function matchesSearch(name) {
+  if (!searchTerm) {
+    return true;
+  }
+
+  return name.toLowerCase().includes(searchTerm);
 }
 
 function getMetricEntry(name, metricKey) {
