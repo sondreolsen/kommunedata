@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kommunenes</title>
+  <title>Kommunedata</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQJX7KkTD9Cd8dAcHgxnZcC8qfdOQZQ="
+    crossorigin=""
+  >
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -29,7 +35,7 @@
       </nav>
 
       <div class="topbar-actions">
-        <button class="icon-button" type="button" aria-label="Innstillinger">◌</button>
+        <button class="icon-button" type="button" aria-label="Innstillinger">☼</button>
         <button class="icon-button" type="button" aria-label="Hjelp">?</button>
         <button class="share-button" type="button">Del</button>
       </div>
@@ -68,21 +74,20 @@
             </label>
 
             <div class="map-tools">
-              <button class="tool-button" type="button" aria-label="Hjem">⌂</button>
-              <button class="tool-button" type="button" aria-label="Zoom inn">+</button>
-              <button class="tool-button" type="button" aria-label="Zoom ut">−</button>
+              <button class="tool-button" id="home-button" type="button" aria-label="Hjem">⌂</button>
+              <button class="tool-button" id="zoom-in-button" type="button" aria-label="Zoom inn">+</button>
+              <button class="tool-button" id="zoom-out-button" type="button" aria-label="Zoom ut">−</button>
             </div>
           </div>
 
           <div class="map-surface">
-            <div class="map-surface__backdrop"></div>
-            <svg id="vestland-map" role="img" aria-labelledby="map-title"></svg>
+            <div id="vestland-map" role="img" aria-labelledby="map-title"></div>
 
             <div class="map-header-card">
               <p class="eyebrow">Kart</p>
               <h1 id="map-title">Velg en statistikk</h1>
               <p id="map-note">
-                Kartet bruker offisielle Vestland-geometrier. Tallene er fortsatt eksempeldata til vi kobler på ekte statistikk.
+                Kartet viser Vestland kommune for kommune. Velg statistikk for fargelegging.
               </p>
             </div>
 
@@ -184,6 +189,11 @@
     </section>
   </div>
 
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
   <script src="data/vestland-geo.js"></script>
   <script src="data/vestland-boundaries.js"></script>
   <script src="script.js"></script>
