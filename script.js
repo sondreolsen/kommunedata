@@ -424,9 +424,11 @@ function buildProjection(features, lineFeatures) {
   features.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
   lineFeatures.forEach(feature => collectCoordinates(feature.geometry.coordinates, lonLatPoints));
 
-  const mercatorPoints = lonLatPoints.map(([lon, lat]) => [lon, mercatorY(lat)]);
-  const xValues = mercatorPoints.map(point => point[0]);
-  const yValues = mercatorPoints.map(point => point[1]);
+  const latitudes = lonLatPoints.map(point => point[1]);
+  const centerLatitude = (Math.min(...latitudes) + Math.max(...latitudes)) / 2;
+  const projectedPoints = lonLatPoints.map(([lon, lat]) => [projectedX(lon, centerLatitude), mercatorY(lat)]);
+  const xValues = projectedPoints.map(point => point[0]);
+  const yValues = projectedPoints.map(point => point[1]);
   const minX = Math.min(...xValues);
   const maxX = Math.max(...xValues);
   const minY = Math.min(...yValues);
@@ -439,12 +441,19 @@ function buildProjection(features, lineFeatures) {
   const offsetY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
 
   return {
+    centerLatitude,
     scale,
     minX,
     maxY,
     offsetX,
     offsetY
   };
+}
+
+function projectedX(longitude, centerLatitude) {
+  const longitudeRadians = longitude * (Math.PI / 180);
+  const centerLatitudeRadians = centerLatitude * (Math.PI / 180);
+  return longitudeRadians * Math.cos(centerLatitudeRadians);
 }
 
 function mercatorY(latitude) {
@@ -467,7 +476,7 @@ function collectCoordinates(coordinates, result) {
 
 function projectPoint([longitude, latitude], projection) {
   return [
-    (longitude - projection.minX) * projection.scale + projection.offsetX,
+    (projectedX(longitude, projection.centerLatitude) - projection.minX) * projection.scale + projection.offsetX,
     (projection.maxY - mercatorY(latitude)) * projection.scale + projection.offsetY
   ];
 }
