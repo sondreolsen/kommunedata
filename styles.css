@@ -599,27 +599,28 @@ table {
   .legend-card {
     top: auto;
     bottom: 18px;
-    left: 10px;
+    right: 10px;
+    left: auto;
     max-width: calc(100% - 16px);
   }
 
   .legend-card strong {
-    margin-bottom: 4px;
-    font-size: 0.45rem;
+    margin-bottom: 6px;
+    font-size: 0.63rem;
   }
 
   .legend {
-    gap: 4px;
+    gap: 6px;
   }
 
   .legend__item {
-    gap: 4px;
-    font-size: 0.42rem;
+    gap: 6px;
+    font-size: 0.59rem;
   }
 
   .legend__swatch {
-    width: 5px;
-    height: 5px;
+    width: 7px;
+    height: 7px;
   }
 
   .map-stat-card {
