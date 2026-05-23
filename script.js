@@ -111,7 +111,7 @@ const metrics = {
     title: "Gebyr private planer",
     description: "Gebyr for privat forslag til detaljreguleringsplan. Tall fra SSB for 2025.",
     format: value => `${formatWholeNumber(value)} kr`,
-    thresholds: { good: "Under 200 000 kr", medium: "200 000 til 400 000 kr", bad: "Over 400 000 kr" },
+    thresholds: { good: "Opp til 100 000 kr", medium: "100 000 til 150 000 kr", bad: "Over 150 000 kr" },
     source: "SSB tabell 12671, 2025"
   },
   sykefravaer: {
@@ -697,8 +697,8 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "gebyrPrivatePlaner") {
-    if (value < 200000) return "good";
-    if (value <= 400000) return "medium";
+    if (value <= 100000) return "good";
+    if (value <= 150000) return "medium";
     return "bad";
   }
 
