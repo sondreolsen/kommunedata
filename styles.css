@@ -131,44 +131,7 @@ table {
 }
 
 .workspace {
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 16px;
   margin-top: 16px;
-}
-
-.side-nav {
-  background: var(--surface);
-  border: 1px solid rgba(220, 229, 239, 0.95);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  padding: 12px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.side-nav__item {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  border-radius: 8px;
-  padding: 14px 10px;
-  display: grid;
-  gap: 8px;
-  justify-items: center;
-  cursor: pointer;
-  font-size: 0.82rem;
-}
-
-.side-nav__item.is-active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.side-nav__icon {
-  font-size: 1.2rem;
 }
 
 .map-stage {
@@ -647,19 +610,6 @@ tbody td {
 }
 
 @media (max-width: 980px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .side-nav {
-    flex-direction: row;
-    overflow: auto;
-  }
-
-  .side-nav__item {
-    min-width: 92px;
-  }
-
   .map-surface {
     min-height: 720px;
   }
@@ -679,8 +629,7 @@ tbody td {
   .map-panel,
   .insight-card,
   .summary-card,
-  .table-card,
-  .side-nav {
+  .table-card {
     border-radius: 10px;
   }
 
