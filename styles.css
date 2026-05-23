@@ -102,26 +102,6 @@ table {
   color: var(--muted);
 }
 
-.topnav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.topnav__link {
-  padding: 12px 14px;
-  color: var(--ink);
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-}
-
-.topnav__link.is-active {
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -702,15 +682,6 @@ tbody td {
   .table-card,
   .side-nav {
     border-radius: 10px;
-  }
-
-  .topnav {
-    gap: 4px;
-  }
-
-  .topnav__link {
-    padding: 10px 12px;
-    font-size: 0.92rem;
   }
 
   .map-toolbar {
