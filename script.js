@@ -116,9 +116,10 @@ const metrics = {
   },
   sykefravaer: {
     title: "Sykefravær",
-    description: "Andel sykefravær i kommunen.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Under 6,8 %", medium: "6,8 % til 8,0 %", bad: "Over 8,0 %" }
+    description: "Legemeldt sykefraværsprosent. Tall fra SSB for 4. kvartal 2025.",
+    format: value => `${formatDecimal(value)} %`,
+    thresholds: { good: "Under 5,5 %", medium: "5,5 til 6,4 %", bad: "6,5 % eller høyere" },
+    source: "SSB tabell 12451, 2025K4"
   },
   befolkningsvekst: {
     title: "Befolkningsvekst i prosent de siste tre årene",
@@ -150,7 +151,7 @@ function buildMetricValues() {
       ungeUfore: createValue(index, 1.2, 0.13, 4.6),
       saksbehandlingstid: getSsbPrivatePlanerValue(municipalityName, "saksbehandlingstid"),
       gebyrPrivatePlaner: getSsbPrivatePlanerValue(municipalityName, "gebyrPrivatePlaner"),
-      sykefravaer: createValue(index, 5.6, 0.19, 9.7),
+      sykefravaer: getSsbSykefravaerValue(municipalityName),
       befolkningsvekst: createGrowthValue(index),
       driftsresultat: getSsbDriftsresultatValue(municipalityName, createOperatingValue(index)),
       eiendomsskatt: createTaxValue(index)
@@ -200,6 +201,10 @@ function getSsbPrivatePlanerValue(municipalityName, metricKey) {
   return window.SSB_PRIVATE_PLANER_2025?.municipalities?.[municipalityName]?.[metricKey] ?? null;
 }
 
+function getSsbSykefravaerValue(municipalityName) {
+  return window.SSB_SYKEFRAVAER_2025K4?.municipalities?.[municipalityName]?.value ?? null;
+}
+
 function buildBreakpoints(metricKey) {
   const values = municipalityOrder
     .map(name => metricValues[name]?.[metricKey])
@@ -218,7 +223,6 @@ function buildBreakpoints(metricKey) {
 
 const metricValues = buildMetricValues();
 metricValues.Solund.ungeUfore = null;
-metricValues.Ulvik.sykefravaer = null;
 metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
@@ -673,8 +677,8 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "sykefravaer") {
-    if (value < 6.8) return "good";
-    if (value <= 8.0) return "medium";
+    if (value < 5.5) return "good";
+    if (value < 6.5) return "medium";
     return "bad";
   }
 
