@@ -75,24 +75,6 @@ const thresholdsText = {
   missing: "Mangler data"
 };
 
-const defaultPalette = [
-  "#18d6dc", "#b300ff", "#ff00a3", "#fff100",
-  "#ff1919", "#002cff", "#ff9a17", "#00f018",
-  "#f100d8"
-];
-
-const defaultColorByRegion = {
-  Stad: 0, Stryn: 0, Gloppen: 0, Bremanger: 0,
-  Kinn: 1, Sunnfjord: 1, Askvoll: 1, Fjaler: 1,
-  Hyllestad: 2, Høyanger: 2, Gulen: 2,
-  Fedje: 3, Austrheim: 3, Masfjorden: 3, Alver: 3, Modalen: 3, Osterøy: 3, Vaksdal: 3,
-  Askøy: 4, Bergen: 4, Samnanger: 4, Bjørnafjorden: 4, Austevoll: 4, Øygarden: 4,
-  Bømlo: 5, Fitjar: 5, Stord: 5, Sveio: 5, Tysnes: 5, Kvinnherad: 5, Etne: 5,
-  Luster: 6, Sogndal: 6, Vik: 6, Aurland: 6, Lærdal: 6, Årdal: 6,
-  Voss: 8,
-  Ulvik: 7, Eidfjord: 7, Ullensvang: 7, Kvam: 7
-};
-
 const metrics = {
   arbeidsledige: {
     title: "Arbeidsledige",
@@ -190,15 +172,13 @@ metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Lærdal.driftsresultat = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
-const municipalityFeatures = (window.VESTLAND_GEOJSON?.features || [])
+const municipalitySource = window.VESTLAND_LAND_GEOJSON || window.VESTLAND_GEOJSON;
+const municipalityFeatures = (municipalitySource?.features || [])
   .filter(feature => municipalityOrder.includes(feature.properties.kommunenavn))
   .sort((left, right) =>
     municipalityOrder.indexOf(left.properties.kommunenavn) -
     municipalityOrder.indexOf(right.properties.kommunenavn)
   );
-
-const boundaryFeatures = (window.VESTLAND_BOUNDARIES?.features || [])
-  .filter(feature => feature.properties.avgrensningstype === "Kommunegrense" || feature.properties.avgrensningstype === "Fylkesgrense");
 
 const projection = buildProjection(municipalityFeatures);
 const projectedMunicipalities = municipalityFeatures.map(feature => {
@@ -212,11 +192,6 @@ const projectedMunicipalities = municipalityFeatures.map(feature => {
     area: ringArea(mainRing)
   };
 });
-
-const projectedBoundaries = boundaryFeatures.map(feature => ({
-  kind: feature.properties.avgrensningstype,
-  path: lineToPath(projectLineGeometry(feature.geometry, projection))
-}));
 
 let activeMetricKey = null;
 let selectedMunicipality = null;
@@ -324,17 +299,6 @@ function renderMap() {
     municipalityGroup.appendChild(path);
   });
 
-  const boundaryGroup = document.createElementNS(SVG_NS, "g");
-  boundaryGroup.setAttribute("class", "boundary-layer");
-  mapContent.appendChild(boundaryGroup);
-
-  projectedBoundaries.forEach(feature => {
-    const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", feature.path);
-    path.setAttribute("class", feature.kind === "Fylkesgrense" ? "outer-boundary" : "boundary-line");
-    boundaryGroup.appendChild(path);
-  });
-
   const labelGroup = document.createElementNS(SVG_NS, "g");
   labelGroup.setAttribute("class", "label-layer");
   mapContent.appendChild(labelGroup);
@@ -374,7 +338,7 @@ function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
-    : "Kartet tegnes direkte fra GeoJSON-filene dine, kommune for kommune.";
+    : "Kommunene starter nøytralt. Fjorder og sjø vises i blått mellom landflatene.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
     ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
@@ -399,7 +363,7 @@ function updateMapStyles() {
     const isMatch = matchesSearch(name);
     const isSelected = selectedMunicipality === name;
 
-    path.style.fill = metricData ? statusToColor(metricData.status) : defaultMunicipalityColor(name);
+    path.style.fill = metricData ? statusToColor(metricData.status) : "var(--land)";
     path.style.opacity = isMatch ? "1" : "0.22";
     path.classList.toggle("is-selected", isSelected);
   });
@@ -470,11 +434,6 @@ function labelClass(area) {
 
 function matchesSearch(name) {
   return !searchTerm || name.toLowerCase().includes(searchTerm);
-}
-
-function defaultMunicipalityColor(name) {
-  const index = defaultColorByRegion[name] ?? 0;
-  return defaultPalette[index % defaultPalette.length];
 }
 
 function getMetricEntry(name, metricKey) {
@@ -635,20 +594,6 @@ function projectGeometry(geometry, projection) {
   };
 }
 
-function projectLineGeometry(geometry, projection) {
-  if (geometry.type === "LineString") {
-    return {
-      type: "LineString",
-      coordinates: geometry.coordinates.map(point => projectPoint(point, projection))
-    };
-  }
-
-  return {
-    type: "MultiLineString",
-    coordinates: geometry.coordinates.map(line => line.map(point => projectPoint(point, projection)))
-  };
-}
-
 function geometryToPath(geometry) {
   if (geometry.type === "Polygon") {
     return polygonToPath(geometry.coordinates);
@@ -665,20 +610,6 @@ function polygonToPath(polygon) {
       );
       return `${commands.join(" ")} Z`;
     })
-    .join(" ");
-}
-
-function lineToPath(geometry) {
-  if (geometry.type === "LineString") {
-    return lineCommands(geometry.coordinates);
-  }
-
-  return geometry.coordinates.map(line => lineCommands(line)).join(" ");
-}
-
-function lineCommands(line) {
-  return line
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point[0].toFixed(2)} ${point[1].toFixed(2)}`)
     .join(" ");
 }
 

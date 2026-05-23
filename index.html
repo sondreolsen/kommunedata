@@ -81,16 +81,16 @@
               <p class="eyebrow">Kart</p>
               <h1 id="map-title">Velg en statistikk</h1>
               <p id="map-note">
-                Kartet tegnes direkte fra GeoJSON-filene dine, kommune for kommune.
+                Kommunene starter nøytralt. Fjorder og sjø vises i blått mellom landflatene.
               </p>
             </div>
 
             <div class="legend-card">
               <strong>Tegnforklaring</strong>
               <div class="legend">
-                <span class="legend__item"><i class="legend__swatch legend__swatch--good"></i>Positiv utvikling</span>
-                <span class="legend__item"><i class="legend__swatch legend__swatch--medium"></i>Nøytral utvikling</span>
-                <span class="legend__item"><i class="legend__swatch legend__swatch--bad"></i>Utfordrende utvikling</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--land"></i>Kommune uten valgt statistikk</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--water"></i>Fjord og sjø</span>
+                <span class="legend__item"><i class="legend__swatch legend__swatch--status"></i>Grønn/gul/rød etter valgt statistikk</span>
                 <span class="legend__item"><i class="legend__swatch legend__swatch--missing"></i>Mangler data</span>
               </div>
             </div>
@@ -183,8 +183,7 @@
     </section>
   </div>
 
-  <script src="data/vestland-geo.js"></script>
-  <script src="data/vestland-boundaries.js"></script>
+  <script src="data/vestland-land.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
