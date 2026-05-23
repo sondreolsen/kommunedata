@@ -83,10 +83,15 @@ const metrics = {
     thresholds: { good: "Under 2,2 %", medium: "2,2 % til 3,0 %", bad: "Over 3,0 %" }
   },
   ufore: {
-    title: "Uføre",
-    description: "Andel uføre i kommunen.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Under 8,5 %", medium: "8,5 % til 11,0 %", bad: "Over 11,0 %" }
+    title: "Uføretrygdede",
+    description: "Antall uføretrygdede i kommunen. Absolutte tall fra SSB for 2024.",
+    format: value => `${formatWholeNumber(value)} personer`,
+    thresholds: {
+      good: "Lavt antall i Vestland",
+      medium: "Middels antall i Vestland",
+      bad: "Høyt antall i Vestland"
+    },
+    source: "SSB tabell 11695, 2024"
   },
   ungeUfore: {
     title: "Unge uføre",
@@ -130,7 +135,7 @@ function buildMetricValues() {
   return municipalityOrder.reduce((accumulator, municipalityName, index) => {
     accumulator[municipalityName] = {
       arbeidsledige: createValue(index, 1.4, 0.28, 4.4),
-      ufore: createValue(index, 6.1, 0.43, 14.9),
+      ufore: getSsbUforeValue(municipalityName) ?? createValue(index, 6.1, 0.43, 14.9),
       ungeUfore: createValue(index, 1.2, 0.13, 4.6),
       saksbehandlingstid: Math.round(createValue(index, 65, 8.5, 260)),
       sykefravaer: createValue(index, 5.6, 0.19, 9.7),
@@ -162,15 +167,43 @@ function createTaxValue(index) {
   return Math.max(0, Math.min(value, 6.5));
 }
 
+function getSsbUforeValue(municipalityName) {
+  return window.SSB_UFORETRYGD_2024?.municipalities?.[municipalityName]?.value;
+}
+
+function buildBreakpoints(metricKey) {
+  const values = municipalityOrder
+    .map(name => metricValues[name]?.[metricKey])
+    .filter(value => value !== null && value !== undefined)
+    .sort((left, right) => left - right);
+
+  if (!values.length) {
+    return null;
+  }
+
+  return {
+    goodMax: values[Math.floor((values.length - 1) / 3)],
+    mediumMax: values[Math.floor((values.length - 1) * 2 / 3)]
+  };
+}
+
 const metricValues = buildMetricValues();
 metricValues.Fedje.arbeidsledige = null;
-metricValues.Modalen.ufore = null;
 metricValues.Solund.ungeUfore = null;
 metricValues.Fedje.saksbehandlingstid = null;
 metricValues.Ulvik.sykefravaer = null;
 metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Lærdal.driftsresultat = null;
 metricValues.Austevoll.eiendomsskatt = null;
+
+const uforeBreakpoints = buildBreakpoints("ufore");
+if (uforeBreakpoints) {
+  metrics.ufore.thresholds = {
+    good: `Lavt antall, til og med ${formatWholeNumber(uforeBreakpoints.goodMax)} personer`,
+    medium: `${formatWholeNumber(uforeBreakpoints.goodMax + 1)} til ${formatWholeNumber(uforeBreakpoints.mediumMax)} personer`,
+    bad: `Over ${formatWholeNumber(uforeBreakpoints.mediumMax)} personer`
+  };
+}
 
 const municipalitySource = window.VESTLAND_LAND_GEOJSON || window.VESTLAND_GEOJSON;
 const municipalityFeatures = (municipalitySource?.features || [])
@@ -456,8 +489,9 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "ufore") {
-    if (value < 8.5) return "good";
-    if (value <= 11.0) return "medium";
+    if (!uforeBreakpoints) return "missing";
+    if (value <= uforeBreakpoints.goodMax) return "good";
+    if (value <= uforeBreakpoints.mediumMax) return "medium";
     return "bad";
   }
 
@@ -510,7 +544,12 @@ function renderStatusPill(status) {
 
 function buildThresholdText(metricKey) {
   const metric = metrics[metricKey];
-  return `Grønn: ${metric.thresholds.good}. Gul: ${metric.thresholds.medium}. Rød: ${metric.thresholds.bad}.`;
+  const sourceText = metric.source ? ` Kilde: ${metric.source}.` : "";
+  return `Grønn: ${metric.thresholds.good}. Gul: ${metric.thresholds.medium}. Rød: ${metric.thresholds.bad}.${sourceText}`;
+}
+
+function formatWholeNumber(value) {
+  return new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 0 }).format(value);
 }
 
 function statusToColor(status) {
