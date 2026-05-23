@@ -86,8 +86,8 @@ const metrics = {
   },
   ufore: {
     title: "Uføretrygdede",
-    icon: "💜",
-    iconTone: "welfare",
+    icon: "👥",
+    iconTone: "people",
     description: "Uføretrygdede i prosent av befolkningen. Tall fra SSB for 2024.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: {
