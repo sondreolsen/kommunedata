@@ -20,14 +20,12 @@ const focusMetric = document.querySelector("#focus-metric");
 const focusCount = document.querySelector("#focus-count");
 const focusGood = document.querySelector("#focus-good");
 const focusBad = document.querySelector("#focus-bad");
-const searchInput = document.querySelector("#municipality-search");
-const homeButton = document.querySelector("#home-button");
-const zoomInButton = document.querySelector("#zoom-in-button");
-const zoomOutButton = document.querySelector("#zoom-out-button");
 
 const VIEW_WIDTH = 820;
 const VIEW_HEIGHT = 1180;
 const MAP_PADDING = 22;
+const MIN_ZOOM = 0.82;
+const MAX_ZOOM = 2.8;
 
 const municipalityOrder = [
   "Alver", "Askvoll", "Askøy", "Aurland", "Austevoll", "Austrheim", "Bergen",
@@ -259,6 +257,14 @@ let selectedMunicipality = null;
 let searchTerm = "";
 let mapContent = null;
 let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+let pinchStartDistance = null;
+let pinchStartZoom = 1;
+let pinchStartCenter = null;
+let pinchStartPan = { x: 0, y: 0 };
+let suppressMapClick = false;
+const activeMapPointers = new Map();
 
 mapSvg.setAttribute("viewBox", `0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`);
 mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
@@ -272,29 +278,17 @@ resetButton.addEventListener("click", () => {
   activeMetricKey = null;
   selectedMunicipality = null;
   searchTerm = "";
-  searchInput.value = "";
-  updateUI();
-});
-
-searchInput.addEventListener("input", event => {
-  searchTerm = event.target.value.trim().toLowerCase();
-  updateMapStyles();
-});
-
-homeButton.addEventListener("click", () => {
   zoomLevel = 1;
+  panX = 0;
+  panY = 0;
+  updateUI();
   updateMapTransform();
 });
 
-zoomInButton.addEventListener("click", () => {
-  zoomLevel = Math.min(zoomLevel + 0.18, 1.72);
-  updateMapTransform();
-});
-
-zoomOutButton.addEventListener("click", () => {
-  zoomLevel = Math.max(zoomLevel - 0.18, 0.82);
-  updateMapTransform();
-});
+mapSurface.addEventListener("pointerdown", handleMapPointerDown, { passive: false });
+mapSurface.addEventListener("pointermove", handleMapPointerMove, { passive: false });
+mapSurface.addEventListener("pointerup", handleMapPointerEnd);
+mapSurface.addEventListener("pointercancel", handleMapPointerEnd);
 
 function renderMetricButtons() {
   Object.entries(metrics).forEach(([metricKey, metric]) => {
@@ -363,6 +357,11 @@ function renderMap() {
     });
 
     path.addEventListener("click", event => {
+      if (suppressMapClick) {
+        event.preventDefault();
+        return;
+      }
+
       showMapTooltip(event, name);
       selectedMunicipality = selectedMunicipality === name ? null : name;
       updateMapStyles();
@@ -467,8 +466,129 @@ function updateMapTransform() {
   const centerY = VIEW_HEIGHT / 2;
   mapContent.setAttribute(
     "transform",
-    `translate(${centerX} ${centerY}) scale(${zoomLevel}) translate(${-centerX} ${-centerY})`
+    `translate(${centerX + panX} ${centerY + panY}) scale(${zoomLevel}) translate(${-centerX} ${-centerY})`
   );
+}
+
+function handleMapPointerDown(event) {
+  if (event.pointerType !== "touch") {
+    return;
+  }
+
+  activeMapPointers.set(event.pointerId, {
+    x: event.clientX,
+    y: event.clientY
+  });
+
+  if (mapSurface.setPointerCapture) {
+    try {
+      mapSurface.setPointerCapture(event.pointerId);
+    } catch {
+      // Some browsers can reject capture after a touch has already ended.
+    }
+  }
+
+  if (activeMapPointers.size === 2) {
+    event.preventDefault();
+    hideMapTooltip();
+    pinchStartDistance = getPinchDistance();
+    pinchStartZoom = zoomLevel;
+    pinchStartCenter = getPinchCenter();
+    pinchStartPan = { x: panX, y: panY };
+    suppressMapClick = true;
+  }
+}
+
+function handleMapPointerMove(event) {
+  if (event.pointerType !== "touch" || !activeMapPointers.has(event.pointerId)) {
+    return;
+  }
+
+  activeMapPointers.set(event.pointerId, {
+    x: event.clientX,
+    y: event.clientY
+  });
+
+  if (activeMapPointers.size < 2 || !pinchStartDistance) {
+    return;
+  }
+
+  event.preventDefault();
+  suppressMapClick = true;
+
+  const nextDistance = getPinchDistance();
+  if (!nextDistance) {
+    return;
+  }
+
+  zoomLevel = clampZoom(pinchStartZoom * (nextDistance / pinchStartDistance));
+  updatePanFromPinchCenter();
+  updateMapTransform();
+}
+
+function handleMapPointerEnd(event) {
+  if (event.pointerType !== "touch") {
+    return;
+  }
+
+  activeMapPointers.delete(event.pointerId);
+
+  if (mapSurface.releasePointerCapture) {
+    try {
+      mapSurface.releasePointerCapture(event.pointerId);
+    } catch {
+      // Capture may already have been released by the browser.
+    }
+  }
+
+  if (activeMapPointers.size < 2) {
+    pinchStartDistance = null;
+    pinchStartCenter = null;
+    pinchStartZoom = zoomLevel;
+    pinchStartPan = { x: panX, y: panY };
+    window.setTimeout(() => {
+      suppressMapClick = false;
+    }, 140);
+  }
+}
+
+function getPinchDistance() {
+  const points = Array.from(activeMapPointers.values());
+  if (points.length < 2) {
+    return null;
+  }
+
+  return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+}
+
+function getPinchCenter() {
+  const points = Array.from(activeMapPointers.values());
+  if (points.length < 2) {
+    return null;
+  }
+
+  return {
+    x: (points[0].x + points[1].x) / 2,
+    y: (points[0].y + points[1].y) / 2
+  };
+}
+
+function updatePanFromPinchCenter() {
+  const nextCenter = getPinchCenter();
+  if (!pinchStartCenter || !nextCenter) {
+    return;
+  }
+
+  const surfaceRect = mapSurface.getBoundingClientRect();
+  const svgUnitsPerPixelX = VIEW_WIDTH / surfaceRect.width;
+  const svgUnitsPerPixelY = VIEW_HEIGHT / surfaceRect.height;
+
+  panX = pinchStartPan.x + (nextCenter.x - pinchStartCenter.x) * svgUnitsPerPixelX;
+  panY = pinchStartPan.y + (nextCenter.y - pinchStartCenter.y) * svgUnitsPerPixelY;
+}
+
+function clampZoom(value) {
+  return Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
 }
 
 function updateSummary() {

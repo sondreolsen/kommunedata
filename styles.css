@@ -109,8 +109,7 @@ table {
 }
 
 .icon-button,
-.share-button,
-.tool-button {
+.share-button {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.94);
   color: var(--ink);
@@ -155,49 +154,6 @@ table {
   padding: 14px;
 }
 
-.map-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.search-field {
-  width: min(320px, 100%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.96);
-  min-height: 48px;
-}
-
-.search-field__icon {
-  color: var(--muted);
-}
-
-.search-field input {
-  width: 100%;
-  border: 0;
-  outline: none;
-  background: transparent;
-}
-
-.map-tools {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.tool-button {
-  width: 42px;
-  height: 42px;
-  font-size: 1.2rem;
-}
-
 .map-surface {
   position: relative;
   min-height: 860px;
@@ -207,6 +163,7 @@ table {
     radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.58), transparent 32%),
     linear-gradient(135deg, var(--water) 0%, #d9eff8 42%, var(--water-deep) 100%);
   border: 1px solid var(--line);
+  touch-action: none;
 }
 
 #vestland-map {
@@ -668,16 +625,6 @@ tbody td {
   .summary-card,
   .table-card {
     border-radius: 10px;
-  }
-
-  .map-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .map-tools {
-    flex-direction: row;
-    justify-content: flex-end;
   }
 
   .map-surface {
