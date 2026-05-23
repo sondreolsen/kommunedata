@@ -568,7 +568,7 @@ table {
   .metric-list {
     gap: 8px;
     margin: 12px 0;
-    max-height: 340px;
+    max-height: 236px;
     overflow: auto;
     padding-right: 2px;
   }
