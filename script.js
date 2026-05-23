@@ -104,7 +104,7 @@ const metrics = {
     title: "Saksbehandlingstid private planer",
     description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025.",
     format: value => `${Math.round(value)} dager`,
-    thresholds: { good: "Under 600 dager", medium: "601 til 900 dager", bad: "Over 900 dager" },
+    thresholds: { good: "Under 400 dager", medium: "400 til 999 dager", bad: "Over 999 dager" },
     source: "SSB tabell 12671, 2025"
   },
   gebyrPrivatePlaner: {
@@ -691,8 +691,8 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "saksbehandlingstid") {
-    if (value < 600) return "good";
-    if (value <= 900) return "medium";
+    if (value < 400) return "good";
+    if (value <= 999) return "medium";
     return "bad";
   }
 
