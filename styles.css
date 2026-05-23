@@ -273,27 +273,28 @@ table {
 
 .legend-card strong {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 10px rgba(255, 255, 255, 0.88);
 }
 
 .legend {
   display: grid;
-  gap: 10px;
+  gap: 15px;
 }
 
 .legend__item {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  font-size: 0.94rem;
+  gap: 14px;
+  font-size: 1.41rem;
   color: var(--ink);
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 10px rgba(255, 255, 255, 0.88);
 }
 
 .legend__swatch {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   display: inline-block;
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
