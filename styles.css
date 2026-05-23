@@ -134,7 +134,6 @@ table {
 
 .map-panel,
 .insight-card,
-.summary-card,
 .table-card {
   background: var(--surface);
   border: 1px solid rgba(220, 229, 239, 0.95);
@@ -232,14 +231,12 @@ table {
 }
 
 .insight-card h2,
-.summary-card h2,
 .table-card h2 {
   margin: 0;
   font-size: 1.7rem;
   line-height: 1.12;
 }
 
-.summary-note,
 .table-note,
 .insight-card__intro {
   margin: 8px 0 0;
@@ -367,7 +364,6 @@ table {
 }
 
 .insight-card,
-.summary-card,
 .table-card {
   padding: 18px;
 }
@@ -505,30 +501,6 @@ table {
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.summary-stat {
-  padding: 14px 12px;
-  border-radius: 8px;
-  background: var(--surface-soft);
-}
-
-.summary-stat span {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.summary-stat strong {
-  font-size: 1.7rem;
 }
 
 .table-panel {
@@ -680,7 +652,6 @@ tbody td {
   .topbar,
   .map-panel,
   .insight-card,
-  .summary-card,
   .table-card {
     border-radius: 10px;
   }
@@ -693,10 +664,6 @@ tbody td {
   .insight-panel {
     order: -1;
     gap: 0;
-  }
-
-  .summary-card {
-    display: none;
   }
 
   .insight-card {

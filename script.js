@@ -10,11 +10,6 @@ const mapNote = document.querySelector("#map-note");
 const tableTitle = document.querySelector("#table-title");
 const tableNote = document.querySelector("#table-note");
 const tableBody = document.querySelector("#table-body");
-const summaryTitle = document.querySelector("#summary-title");
-const summaryGood = document.querySelector("#summary-good");
-const summaryMedium = document.querySelector("#summary-medium");
-const summaryBad = document.querySelector("#summary-bad");
-const summaryNote = document.querySelector("#summary-note");
 const mapStatTitle = document.querySelector("#map-stat-title");
 const mapStatGood = document.querySelector("#map-stat-good");
 const mapStatMedium = document.querySelector("#map-stat-medium");
@@ -268,7 +263,6 @@ mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 renderMetricButtons();
 renderMap();
 renderTable();
-updateSummary();
 updateMapStatCard();
 
 resetButton.addEventListener("click", () => {
@@ -363,7 +357,6 @@ function renderMap() {
       showMapTooltip(event, name);
       selectedMunicipality = selectedMunicipality === name ? null : name;
       updateMapStyles();
-      updateSummary();
     });
 
     path.addEventListener("keydown", event => {
@@ -371,7 +364,6 @@ function renderMap() {
         event.preventDefault();
         selectedMunicipality = selectedMunicipality === name ? null : name;
         updateMapStyles();
-        updateSummary();
       }
     });
 
@@ -426,7 +418,6 @@ function updateUI() {
   updateButtonState();
   updateMapStyles();
   renderTable();
-  updateSummary();
   updateMapStatCard();
   refreshVisibleMapTooltip();
 }
@@ -588,20 +579,6 @@ function updatePanFromPinchCenter() {
 
 function clampZoom(value) {
   return Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
-}
-
-function updateSummary() {
-  const counts = countStatuses(activeMetricKey);
-  const title = selectedMunicipality || (activeMetricKey ? metrics[activeMetricKey].title : "Vestland");
-
-  summaryTitle.textContent = title;
-  summaryGood.textContent = counts.good;
-  summaryMedium.textContent = counts.medium;
-  summaryBad.textContent = counts.bad;
-  summaryNote.textContent = activeMetricKey
-    ? `Fordeling for ${metrics[activeMetricKey].title.toLowerCase()} i Vestland-kommunene.`
-    : "Velg en statistikk for å se fordelingen mellom kommunene.";
-
 }
 
 function updateMapStatCard() {
