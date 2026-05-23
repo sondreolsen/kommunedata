@@ -88,18 +88,13 @@ table {
 
 .brand-copy {
   display: flex;
-  flex-direction: column;
-  line-height: 1.1;
+  align-items: center;
+  line-height: 1;
 }
 
 .brand-copy strong {
   font-size: 1.45rem;
   font-weight: 700;
-}
-
-.brand-copy span {
-  font-size: 0.95rem;
-  color: var(--muted);
 }
 
 .topbar-actions {
