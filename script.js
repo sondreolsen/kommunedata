@@ -15,11 +15,6 @@ const summaryGood = document.querySelector("#summary-good");
 const summaryMedium = document.querySelector("#summary-medium");
 const summaryBad = document.querySelector("#summary-bad");
 const summaryNote = document.querySelector("#summary-note");
-const focusTitle = document.querySelector("#focus-title");
-const focusMetric = document.querySelector("#focus-metric");
-const focusCount = document.querySelector("#focus-count");
-const focusGood = document.querySelector("#focus-good");
-const focusBad = document.querySelector("#focus-bad");
 
 const VIEW_WIDTH = 820;
 const VIEW_HEIGHT = 1180;
@@ -599,11 +594,6 @@ function updateSummary() {
     ? `Fordeling for ${metrics[activeMetricKey].title.toLowerCase()} i Vestland-kommunene.`
     : "Velg en statistikk for å se fordelingen mellom kommunene.";
 
-  focusTitle.textContent = selectedMunicipality || "Vestland";
-  focusMetric.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen valgt";
-  focusCount.textContent = municipalityOrder.length;
-  focusGood.textContent = counts.good;
-  focusBad.textContent = counts.bad;
 }
 
 function countStatuses(metricKey) {
