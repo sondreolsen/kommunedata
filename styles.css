@@ -97,26 +97,6 @@ table {
   font-weight: 700;
 }
 
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.share-button {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--ink);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.share-button {
-  padding: 0 16px;
-  height: 42px;
-  font-weight: 600;
-}
-
 .workspace {
   margin-top: 16px;
 }
