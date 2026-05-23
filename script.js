@@ -102,7 +102,7 @@ const metrics = {
   },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
-    description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025.",
+    description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025, supplert med 2024/2023 der 2025 mangler.",
     format: value => `${Math.round(value)} dager`,
     thresholds: { good: "Under 400 dager", medium: "400 til 999 dager", bad: "Over 999 dager" },
     source: "SSB tabell 12671, 2025"
@@ -408,7 +408,7 @@ function renderTable() {
     const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
     row.innerHTML = `
       <td>${name}</td>
-      <td>${metricData ? formatMetricValue(activeMetricKey, metricData.value) : "Velg statistikk"}</td>
+      <td>${metricData ? formatMetricValue(activeMetricKey, metricData.value, name) : "Velg statistikk"}</td>
       <td>${metricData ? renderStatusPill(metricData.status) : "Ingen valgt"}</td>
     `;
     tableBody.appendChild(row);
@@ -713,12 +713,19 @@ function getStatus(metricKey, value) {
   return "bad";
 }
 
-function formatMetricValue(metricKey, value) {
+function formatMetricValue(metricKey, value, municipalityName = null) {
   if (value === null || value === undefined) {
     return "Mangler data";
   }
 
-  return metrics[metricKey].format(value);
+  const formattedValue = metrics[metricKey].format(value);
+  const sourceYear = getMetricSourceYear(metricKey, municipalityName);
+
+  if (sourceYear && sourceYear !== 2025) {
+    return `${formattedValue} (${sourceYear})`;
+  }
+
+  return formattedValue;
 }
 
 function showMapTooltip(event, name) {
@@ -791,7 +798,7 @@ function buildMunicipalityTooltipLines(name) {
   }
 
   const metricTitle = metrics[activeMetricKey].tooltipTitle || metrics[activeMetricKey].title;
-  const metricValue = formatTooltipMetricValue(activeMetricKey, getMetricEntry(name, activeMetricKey).value);
+  const metricValue = formatTooltipMetricValue(activeMetricKey, getMetricEntry(name, activeMetricKey).value, name);
 
   return {
     title: name,
@@ -799,11 +806,24 @@ function buildMunicipalityTooltipLines(name) {
   };
 }
 
-function formatTooltipMetricValue(metricKey, value) {
-  const formattedValue = formatMetricValue(metricKey, value);
+function formatTooltipMetricValue(metricKey, value, municipalityName = null) {
+  const formattedValue = formatMetricValue(metricKey, value, municipalityName);
   return formattedValue
     .replace(" %", " prosent")
     .replace(" ‰", " promille");
+}
+
+function getMetricSourceYear(metricKey, municipalityName) {
+  if (metricKey !== "saksbehandlingstid" || !municipalityName) {
+    return null;
+  }
+
+  const row = window.SSB_PRIVATE_PLANER_2025?.municipalities?.[municipalityName];
+  if (!row || row.saksbehandlingstid === null || row.saksbehandlingstid === undefined) {
+    return null;
+  }
+
+  return row.saksbehandlingstidYear || 2025;
 }
 
 function renderStatusPill(status) {

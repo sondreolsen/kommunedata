@@ -1,9 +1,14 @@
 window.SSB_PRIVATE_PLANER_2025 = {
   "source": "SSB Statistikkbanken tabell 12671, PxWebApi v2",
-  "sourceUrl": "https://data.ssb.no/api/pxwebapi/v2/tables/12671/data?lang=no&outputFormat=xlsx&valuecodes[Tid]=2025&valuecodes[KOKkommuneregion0000]=*&codelist[KOKkommuneregion0000]=agg_KOGkommuneregion000005402&valuecodes[ContentsCode]=KOSpdtregplgos10000,KOSpdtregplgos40000&heading=Tid,ContentsCode&stub=KOKkommuneregion0000",
+  "sourceUrl": "https://data.ssb.no/api/pxwebapi/v2/tables/12671/data?lang=no&outputFormat=xlsx&valuecodes[Tid]=2023,2024,2025&valuecodes[KOKkommuneregion0000]=4601,4602,4611,4612,4613,4614,4615,4616,4617,4618,4619,4620,4621,4622,4623,4624,4625,4626,4627,4628,4629,4630,4631,4632,4633,4634,4635,4636,4637,4638,4639,4640,4641,4642,4643,4644,4645,4646,4647,4648,4649,4650,4651&codelist[KOKkommuneregion0000]=agg_KOGkommuneregion000005402&valuecodes[ContentsCode]=KOSpdtregplgos10000,KOSpdtregplgos40000&heading=Tid,ContentsCode&stub=KOKkommuneregion0000",
   "fetchedAt": "2026-05-23",
   "table": "12671",
   "year": "2025",
+  "saksbehandlingstidFallbackYears": [
+    "2025",
+    "2024",
+    "2023"
+  ],
   "measures": {
     "gebyrPrivatePlaner": {
       "contentsCode": "KOSpdtregplgos10000",
@@ -25,7 +30,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Askvoll": {
       "code": "4645",
       "gebyrPrivatePlaner": 34500,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 640,
+      "saksbehandlingstidYear": 2024
     },
     "Askøy": {
       "code": "4627",
@@ -60,7 +66,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Bremanger": {
       "code": "4648",
       "gebyrPrivatePlaner": 45670,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 537,
+      "saksbehandlingstidYear": 2023
     },
     "Bømlo": {
       "code": "4613",
@@ -70,12 +77,14 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Eidfjord": {
       "code": "4619",
       "gebyrPrivatePlaner": 39367,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 121,
+      "saksbehandlingstidYear": 2023
     },
     "Etne": {
       "code": "4611",
       "gebyrPrivatePlaner": 51669,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 473,
+      "saksbehandlingstidYear": 2024
     },
     "Fedje": {
       "code": "4633",
@@ -85,7 +94,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Fitjar": {
       "code": "4615",
       "gebyrPrivatePlaner": 156150,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 2100,
+      "saksbehandlingstidYear": 2024
     },
     "Fjaler": {
       "code": "4646",
@@ -105,7 +115,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Hyllestad": {
       "code": "4637",
       "gebyrPrivatePlaner": 78310,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 342,
+      "saksbehandlingstidYear": 2024
     },
     "Høyanger": {
       "code": "4638",
@@ -140,7 +151,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Masfjorden": {
       "code": "4634",
       "gebyrPrivatePlaner": null,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 350,
+      "saksbehandlingstidYear": 2024
     },
     "Modalen": {
       "code": "4629",
@@ -190,7 +202,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Sveio": {
       "code": "4612",
       "gebyrPrivatePlaner": 120736,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 287,
+      "saksbehandlingstidYear": 2023
     },
     "Tysnes": {
       "code": "4616",
@@ -215,7 +228,8 @@ window.SSB_PRIVATE_PLANER_2025 = {
     "Vik": {
       "code": "4639",
       "gebyrPrivatePlaner": 34742,
-      "saksbehandlingstid": null
+      "saksbehandlingstid": 576,
+      "saksbehandlingstidYear": 2023
     },
     "Voss": {
       "code": "4621",
