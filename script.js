@@ -104,9 +104,17 @@ const metrics = {
   },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
-    description: "Antall dager for behandling av private planer.",
+    description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025.",
     format: value => `${Math.round(value)} dager`,
-    thresholds: { good: "Under 120 dager", medium: "120 til 180 dager", bad: "Over 180 dager" }
+    thresholds: { good: "Under 600 dager", medium: "601 til 900 dager", bad: "Over 900 dager" },
+    source: "SSB tabell 12671, 2025"
+  },
+  gebyrPrivatePlaner: {
+    title: "Gebyr private planer",
+    description: "Gebyr for privat forslag til detaljreguleringsplan. Tall fra SSB for 2025.",
+    format: value => `${formatWholeNumber(value)} kr`,
+    thresholds: { good: "Under 200 000 kr", medium: "200 000 til 400 000 kr", bad: "Over 400 000 kr" },
+    source: "SSB tabell 12671, 2025"
   },
   sykefravaer: {
     title: "Sykefravær",
@@ -142,7 +150,8 @@ function buildMetricValues() {
       arbeidsledige: getNavArbeidsledighetValue(municipalityName),
       ufore: getSsbUforeValue(municipalityName) ?? createValue(index, 6.1, 0.43, 14.9),
       ungeUfore: createValue(index, 1.2, 0.13, 4.6),
-      saksbehandlingstid: Math.round(createValue(index, 65, 8.5, 260)),
+      saksbehandlingstid: getSsbPrivatePlanerValue(municipalityName, "saksbehandlingstid"),
+      gebyrPrivatePlaner: getSsbPrivatePlanerValue(municipalityName, "gebyrPrivatePlaner"),
       sykefravaer: createValue(index, 5.6, 0.19, 9.7),
       befolkningsvekst: createGrowthValue(index),
       driftsresultat: getSsbDriftsresultatValue(municipalityName, createOperatingValue(index)),
@@ -189,6 +198,10 @@ function getSsbDriftsresultatValue(municipalityName, fallbackValue) {
   return data[municipalityName].value;
 }
 
+function getSsbPrivatePlanerValue(municipalityName, metricKey) {
+  return window.SSB_PRIVATE_PLANER_2025?.municipalities?.[municipalityName]?.[metricKey] ?? null;
+}
+
 function buildBreakpoints(metricKey) {
   const values = municipalityOrder
     .map(name => metricValues[name]?.[metricKey])
@@ -207,7 +220,6 @@ function buildBreakpoints(metricKey) {
 
 const metricValues = buildMetricValues();
 metricValues.Solund.ungeUfore = null;
-metricValues.Fedje.saksbehandlingstid = null;
 metricValues.Ulvik.sykefravaer = null;
 metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Austevoll.eiendomsskatt = null;
@@ -326,10 +338,6 @@ function renderMap() {
     path.dataset.name = name;
     path.setAttribute("tabindex", "0");
 
-    const title = document.createElementNS(SVG_NS, "title");
-    title.textContent = buildMunicipalityTooltipText(name);
-    path.appendChild(title);
-
     path.addEventListener("pointerenter", event => {
       showMapTooltip(event, name);
     });
@@ -441,7 +449,6 @@ function updateMapStyles() {
     path.style.fill = metricData ? statusToColor(metricData.status) : "var(--land)";
     path.style.opacity = isMatch ? "1" : "0.22";
     path.setAttribute("aria-label", buildMunicipalityTooltipText(name).replace("\n", ", "));
-    path.querySelector("title").textContent = buildMunicipalityTooltipText(name);
     path.classList.toggle("is-selected", isSelected);
   });
 
@@ -560,6 +567,18 @@ function getStatus(metricKey, value) {
   if (metricKey === "driftsresultat") {
     if (value >= 2) return "good";
     if (value >= 0) return "medium";
+    return "bad";
+  }
+
+  if (metricKey === "saksbehandlingstid") {
+    if (value < 600) return "good";
+    if (value <= 900) return "medium";
+    return "bad";
+  }
+
+  if (metricKey === "gebyrPrivatePlaner") {
+    if (value < 200000) return "good";
+    if (value <= 400000) return "medium";
     return "bad";
   }
 
@@ -687,6 +706,12 @@ function formatDecimal(value) {
   return new Intl.NumberFormat("nb-NO", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
+  }).format(value);
+}
+
+function formatWholeNumber(value) {
+  return new Intl.NumberFormat("nb-NO", {
+    maximumFractionDigits: 0
   }).format(value);
 }
 
