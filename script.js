@@ -84,12 +84,12 @@ const metrics = {
   },
   ufore: {
     title: "Uføretrygdede",
-    description: "Antall uføretrygdede i kommunen. Absolutte tall fra SSB for 2024.",
-    format: value => `${formatWholeNumber(value)} personer`,
+    description: "Uføretrygdede i prosent av befolkningen. Tall fra SSB for 2024.",
+    format: value => `${formatDecimal(value)} %`,
     thresholds: {
-      good: "Lavt antall i Vestland",
-      medium: "Middels antall i Vestland",
-      bad: "Høyt antall i Vestland"
+      good: "Lav andel i Vestland",
+      medium: "Middels andel i Vestland",
+      bad: "Høy andel i Vestland"
     },
     source: "SSB tabell 11695, 2024"
   },
@@ -199,9 +199,9 @@ metricValues.Austevoll.eiendomsskatt = null;
 const uforeBreakpoints = buildBreakpoints("ufore");
 if (uforeBreakpoints) {
   metrics.ufore.thresholds = {
-    good: `Lavt antall, til og med ${formatWholeNumber(uforeBreakpoints.goodMax)} personer`,
-    medium: `${formatWholeNumber(uforeBreakpoints.goodMax + 1)} til ${formatWholeNumber(uforeBreakpoints.mediumMax)} personer`,
-    bad: `Over ${formatWholeNumber(uforeBreakpoints.mediumMax)} personer`
+    good: `Lav andel, til og med ${formatDecimal(uforeBreakpoints.goodMax)} %`,
+    medium: `Over ${formatDecimal(uforeBreakpoints.goodMax)} % til ${formatDecimal(uforeBreakpoints.mediumMax)} %`,
+    bad: `Over ${formatDecimal(uforeBreakpoints.mediumMax)} %`
   };
 }
 
@@ -548,8 +548,11 @@ function buildThresholdText(metricKey) {
   return `Grønn: ${metric.thresholds.good}. Gul: ${metric.thresholds.medium}. Rød: ${metric.thresholds.bad}.${sourceText}`;
 }
 
-function formatWholeNumber(value) {
-  return new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 0 }).format(value);
+function formatDecimal(value) {
+  return new Intl.NumberFormat("nb-NO", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  }).format(value);
 }
 
 function statusToColor(status) {
