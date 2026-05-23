@@ -487,17 +487,6 @@ table {
   color: #ca8a04;
 }
 
-.reset-button {
-  width: 100%;
-  height: 48px;
-  border: 0;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #2a68ef 0%, #1d57d4 100%);
-  color: #ffffff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 .table-panel {
   margin-top: 16px;
 }
@@ -691,10 +680,6 @@ tbody td {
 
   .metric-button__meta {
     font-size: 0.78rem;
-  }
-
-  .reset-button {
-    height: 42px;
   }
 
   .map-surface {

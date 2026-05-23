@@ -4,7 +4,6 @@ const mapSvg = document.querySelector("#vestland-map");
 const mapSurface = document.querySelector(".map-surface");
 const mapTooltip = document.querySelector("#map-tooltip");
 const metricList = document.querySelector("#metric-list");
-const resetButton = document.querySelector("#reset-button");
 const mapTitle = document.querySelector("#map-title");
 const mapNote = document.querySelector("#map-note");
 const tableTitle = document.querySelector("#table-title");
@@ -263,17 +262,6 @@ mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 renderMetricButtons();
 renderMap();
 updateUI();
-
-resetButton.addEventListener("click", () => {
-  activeMetricKey = null;
-  selectedMunicipality = null;
-  searchTerm = "";
-  zoomLevel = 1;
-  panX = 0;
-  panY = 0;
-  updateUI();
-  updateMapTransform();
-});
 
 mapSurface.addEventListener("pointerdown", handleMapPointerDown, { passive: false });
 mapSurface.addEventListener("pointermove", handleMapPointerMove, { passive: false });
