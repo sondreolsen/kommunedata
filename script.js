@@ -94,12 +94,6 @@ const metrics = {
     },
     source: "SSB tabell 11695, 2024"
   },
-  ungeUfore: {
-    title: "Unge uføre",
-    description: "Andel unge uføre i kommunen.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Under 2,4 %", medium: "2,4 % til 3,2 %", bad: "Over 3,2 %" }
-  },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
     description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025, supplert med 2024/2023 der 2025 mangler.",
@@ -148,7 +142,6 @@ function buildMetricValues() {
     accumulator[municipalityName] = {
       arbeidsledige: getNavArbeidsledighetValue(municipalityName),
       ufore: getSsbUforeValue(municipalityName) ?? createValue(index, 6.1, 0.43, 14.9),
-      ungeUfore: createValue(index, 1.2, 0.13, 4.6),
       saksbehandlingstid: getSsbPrivatePlanerValue(municipalityName, "saksbehandlingstid"),
       gebyrPrivatePlaner: getSsbPrivatePlanerValue(municipalityName, "gebyrPrivatePlaner"),
       sykefravaer: getSsbSykefravaerValue(municipalityName),
@@ -222,7 +215,6 @@ function buildBreakpoints(metricKey) {
 }
 
 const metricValues = buildMetricValues();
-metricValues.Solund.ungeUfore = null;
 metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
@@ -667,12 +659,6 @@ function getStatus(metricKey, value) {
     if (!uforeBreakpoints) return "missing";
     if (value <= uforeBreakpoints.goodMax) return "good";
     if (value <= uforeBreakpoints.mediumMax) return "medium";
-    return "bad";
-  }
-
-  if (metricKey === "ungeUfore") {
-    if (value < 2.4) return "good";
-    if (value <= 3.2) return "medium";
     return "bad";
   }
 
