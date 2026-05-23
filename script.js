@@ -243,7 +243,7 @@ const projectedMunicipalities = municipalityFeatures.map(feature => {
   };
 });
 
-let activeMetricKey = null;
+let activeMetricKey = "saksbehandlingstid";
 let selectedMunicipality = null;
 let searchTerm = "";
 let mapContent = null;
@@ -262,8 +262,7 @@ mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
 renderMetricButtons();
 renderMap();
-renderTable();
-updateMapStatCard();
+updateUI();
 
 resetButton.addEventListener("click", () => {
   activeMetricKey = null;
