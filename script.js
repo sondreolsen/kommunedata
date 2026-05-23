@@ -75,28 +75,6 @@ const thresholdsText = {
 };
 
 const metrics = {
-  arbeidsledige: {
-    title: "Arbeidsledighet",
-    icon: "💼",
-    iconTone: "work",
-    description: "Helt ledige i prosent av arbeidsstyrken. Tall fra NAV for april 2026.",
-    format: value => `${formatDecimal(value)} %`,
-    thresholds: { good: "Under 2,5 %", medium: "2,5 % til og med 5,0 %", bad: "Over 5,0 %" },
-    source: "NAV Hovedtall om arbeidsmarkedet, april 2026"
-  },
-  ufore: {
-    title: "Uføretrygdede",
-    icon: "👥",
-    iconTone: "people",
-    description: "Uføretrygdede i prosent av befolkningen. Tall fra SSB for 2024.",
-    format: value => `${formatDecimal(value)} %`,
-    thresholds: {
-      good: "Lav andel i Vestland",
-      medium: "Middels andel i Vestland",
-      bad: "Høy andel i Vestland"
-    },
-    source: "SSB tabell 11695, 2024"
-  },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
     icon: "⏱",
@@ -115,6 +93,19 @@ const metrics = {
     thresholds: { good: "Opp til 100 000 kr", medium: "100 000 til 150 000 kr", bad: "Over 150 000 kr" },
     source: "SSB tabell 12671, 2025"
   },
+  ufore: {
+    title: "Uføretrygdede",
+    icon: "👥",
+    iconTone: "people",
+    description: "Uføretrygdede i prosent av befolkningen. Tall fra SSB for 2024.",
+    format: value => `${formatDecimal(value)} %`,
+    thresholds: {
+      good: "Lav andel i Vestland",
+      medium: "Middels andel i Vestland",
+      bad: "Høy andel i Vestland"
+    },
+    source: "SSB tabell 11695, 2024"
+  },
   sykefravaer: {
     title: "Sykefravær",
     icon: "🌡",
@@ -124,16 +115,17 @@ const metrics = {
     thresholds: { good: "Under 5,5 %", medium: "5,5 til 6,4 %", bad: "6,5 % eller høyere" },
     source: "SSB tabell 12451, 2025K4"
   },
-  befolkningsvekst: {
-    title: "Befolkningsvekst i prosent de siste tre årene",
-    icon: "👥",
-    iconTone: "people",
-    description: "Endring i folketall siste tre år.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Over 2,5 %", medium: "0 % til 2,5 %", bad: "Under 0 %" }
+  arbeidsledige: {
+    title: "Arbeidsledighet",
+    icon: "💼",
+    iconTone: "work",
+    description: "Helt ledige i prosent av arbeidsstyrken. Tall fra NAV for april 2026.",
+    format: value => `${formatDecimal(value)} %`,
+    thresholds: { good: "Under 2,5 %", medium: "2,5 % til og med 5,0 %", bad: "Over 5,0 %" },
+    source: "NAV Hovedtall om arbeidsmarkedet, april 2026"
   },
   driftsresultat: {
-    title: "Driftsresultat kommunen",
+    title: "Driftsresultat kommune",
     tooltipTitle: "Driftsresultat",
     icon: "📊",
     iconTone: "economy",
@@ -160,7 +152,6 @@ function buildMetricValues() {
       saksbehandlingstid: getSsbPrivatePlanerValue(municipalityName, "saksbehandlingstid"),
       gebyrPrivatePlaner: getSsbPrivatePlanerValue(municipalityName, "gebyrPrivatePlaner"),
       sykefravaer: getSsbSykefravaerValue(municipalityName),
-      befolkningsvekst: createGrowthValue(index),
       driftsresultat: getSsbDriftsresultatValue(municipalityName, createOperatingValue(index)),
       eiendomsskatt: createTaxValue(index)
     };
@@ -171,11 +162,6 @@ function buildMetricValues() {
 function createValue(index, base, step, maxValue) {
   const wave = ((index * 7) % 9) * 0.17;
   return Math.min(base + index * step * 0.27 + wave, maxValue);
-}
-
-function createGrowthValue(index) {
-  const value = -1.8 + index * 0.12 + (((index * 5) % 8) - 3) * 0.22;
-  return Math.max(-4.2, Math.min(value, 5.8));
 }
 
 function createOperatingValue(index) {
@@ -230,7 +216,6 @@ function buildBreakpoints(metricKey) {
 }
 
 const metricValues = buildMetricValues();
-metricValues.Austrheim.befolkningsvekst = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
 const uforeBreakpoints = buildBreakpoints("ufore");
@@ -687,12 +672,6 @@ function getStatus(metricKey, value) {
   if (metricKey === "sykefravaer") {
     if (value < 5.5) return "good";
     if (value < 6.5) return "medium";
-    return "bad";
-  }
-
-  if (metricKey === "befolkningsvekst") {
-    if (value > 2.5) return "good";
-    if (value >= 0) return "medium";
     return "bad";
   }
 
