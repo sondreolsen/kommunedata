@@ -6,9 +6,6 @@ const mapTooltip = document.querySelector("#map-tooltip");
 const metricList = document.querySelector("#metric-list");
 const mapTitle = document.querySelector("#map-title");
 const mapNote = document.querySelector("#map-note");
-const tableTitle = document.querySelector("#table-title");
-const tableNote = document.querySelector("#table-note");
-const tableBody = document.querySelector("#table-body");
 const mapStatTitle = document.querySelector("#map-stat-title");
 const mapStatGood = document.querySelector("#map-stat-good");
 const mapStatMedium = document.querySelector("#map-stat-medium");
@@ -377,34 +374,14 @@ function renderMap() {
   updateMapTransform();
 }
 
-function renderTable() {
-  tableBody.innerHTML = "";
-
-  municipalityOrder.forEach(name => {
-    const row = document.createElement("tr");
-    const metricData = activeMetricKey ? getMetricEntry(name, activeMetricKey) : null;
-    row.innerHTML = `
-      <td>${name}</td>
-      <td>${metricData ? formatMetricValue(activeMetricKey, metricData.value, name) : "Velg statistikk"}</td>
-      <td>${metricData ? renderStatusPill(metricData.status) : "Ingen valgt"}</td>
-    `;
-    tableBody.appendChild(row);
-  });
-}
-
 function updateUI() {
   mapTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Velg en statistikk";
   mapNote.textContent = activeMetricKey
     ? buildThresholdText(activeMetricKey)
     : "Kommunene starter nøytralt. Fjorder og sjø vises i blått mellom landflatene.";
-  tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
-  tableNote.textContent = activeMetricKey
-    ? buildMetricDescription(activeMetricKey)
-    : "Velg en statistikk for å se tall per kommune.";
 
   updateButtonState();
   updateMapStyles();
-  renderTable();
   updateMapStatCard();
   refreshVisibleMapTooltip();
 }
@@ -779,10 +756,6 @@ function getMetricSourceYear(metricKey, municipalityName) {
   }
 
   return row.saksbehandlingstidYear || 2025;
-}
-
-function renderStatusPill(status) {
-  return `<span class="status-pill status-pill--${status}">${thresholdsText[status]}</span>`;
 }
 
 function buildThresholdText(metricKey) {

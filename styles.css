@@ -108,8 +108,7 @@ table {
 }
 
 .map-panel,
-.insight-card,
-.table-card {
+.insight-card {
   background: var(--surface);
   border: 1px solid rgba(220, 229, 239, 0.95);
   border-radius: 12px;
@@ -205,14 +204,12 @@ table {
   border: 0;
 }
 
-.insight-card h2,
-.table-card h2 {
+.insight-card h2 {
   margin: 0;
   font-size: 1.7rem;
   line-height: 1.12;
 }
 
-.table-note,
 .insight-card__intro {
   margin: 8px 0 0;
   color: var(--muted);
@@ -338,8 +335,7 @@ table {
   align-content: start;
 }
 
-.insight-card,
-.table-card {
+.insight-card {
   padding: 18px;
 }
 
@@ -467,78 +463,6 @@ table {
   color: #ca8a04;
 }
 
-.table-panel {
-  margin-top: 16px;
-}
-
-.table-card__header {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: start;
-}
-
-.table-wrap {
-  overflow: auto;
-  margin-top: 18px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 560px;
-}
-
-thead th {
-  text-align: left;
-  font-size: 0.84rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  padding: 0 0 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-tbody td {
-  padding: 13px 0;
-  border-bottom: 1px solid rgba(220, 229, 239, 0.95);
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  background: #ffffff;
-  border: 1px solid var(--line);
-}
-
-.status-pill::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.status-pill--good {
-  color: #44a444;
-}
-
-.status-pill--medium {
-  color: #c89413;
-}
-
-.status-pill--bad {
-  color: #dd5e4d;
-}
-
-.status-pill--missing {
-  color: #80837f;
-}
-
 .municipality {
   fill: var(--land);
   stroke: var(--land-edge);
@@ -615,8 +539,7 @@ tbody td {
 
   .topbar,
   .map-panel,
-  .insight-card,
-  .table-card {
+  .insight-card {
     border-radius: 10px;
   }
 
