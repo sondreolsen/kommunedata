@@ -260,13 +260,21 @@ table {
 .legend-card {
   left: 18px;
   bottom: 18px;
-  padding: 14px;
-  width: min(280px, calc(100% - 36px));
+  padding: 0;
+  width: auto;
+  max-width: calc(100% - 36px);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  pointer-events: none;
 }
 
 .legend-card strong {
   display: block;
   margin-bottom: 10px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 10px rgba(255, 255, 255, 0.88);
 }
 
 .legend {
@@ -280,6 +288,7 @@ table {
   gap: 9px;
   font-size: 0.94rem;
   color: var(--ink);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 10px rgba(255, 255, 255, 0.88);
 }
 
 .legend__swatch {
@@ -287,6 +296,7 @@ table {
   height: 12px;
   border-radius: 999px;
   display: inline-block;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 
 .legend__swatch--good {
