@@ -77,10 +77,11 @@ const thresholdsText = {
 
 const metrics = {
   arbeidsledige: {
-    title: "Arbeidsledige",
-    description: "Andel registrerte ledige i kommunen.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Under 2,2 %", medium: "2,2 % til 3,0 %", bad: "Over 3,0 %" }
+    title: "Arbeidsledighet",
+    description: "Helt ledige i prosent av arbeidsstyrken. Tall fra NAV for april 2026.",
+    format: value => `${formatDecimal(value)} %`,
+    thresholds: { good: "Under 2,5 %", medium: "2,5 % til og med 5,0 %", bad: "Over 5,0 %" },
+    source: "NAV Hovedtall om arbeidsmarkedet, april 2026"
   },
   ufore: {
     title: "Uføretrygdede",
@@ -135,7 +136,7 @@ const metrics = {
 function buildMetricValues() {
   return municipalityOrder.reduce((accumulator, municipalityName, index) => {
     accumulator[municipalityName] = {
-      arbeidsledige: createValue(index, 1.4, 0.28, 4.4),
+      arbeidsledige: getNavArbeidsledighetValue(municipalityName),
       ufore: getSsbUforeValue(municipalityName) ?? createValue(index, 6.1, 0.43, 14.9),
       ungeUfore: createValue(index, 1.2, 0.13, 4.6),
       saksbehandlingstid: Math.round(createValue(index, 65, 8.5, 260)),
@@ -168,6 +169,10 @@ function createTaxValue(index) {
   return Math.max(0, Math.min(value, 6.5));
 }
 
+function getNavArbeidsledighetValue(municipalityName) {
+  return window.NAV_ARBEIDSLEDIGHET_2026_APRIL?.municipalities?.[municipalityName]?.value ?? null;
+}
+
 function getSsbUforeValue(municipalityName) {
   return window.SSB_UFORETRYGD_2024?.municipalities?.[municipalityName]?.value;
 }
@@ -198,7 +203,6 @@ function buildBreakpoints(metricKey) {
 }
 
 const metricValues = buildMetricValues();
-metricValues.Fedje.arbeidsledige = null;
 metricValues.Solund.ungeUfore = null;
 metricValues.Fedje.saksbehandlingstid = null;
 metricValues.Ulvik.sykefravaer = null;
@@ -383,8 +387,8 @@ function updateUI() {
     : "Kommunene starter nøytralt. Fjorder og sjø vises i blått mellom landflatene.";
   tableTitle.textContent = activeMetricKey ? metrics[activeMetricKey].title : "Ingen statistikk valgt";
   tableNote.textContent = activeMetricKey
-    ? `${metrics[activeMetricKey].description} Visningen kan senere kobles direkte mot lenker og definerte terskler.`
-    : "Eksempeldata brukes i denne første versjonen.";
+    ? buildMetricDescription(activeMetricKey)
+    : "Velg en statistikk for å se tall per kommune.";
 
   updateButtonState();
   updateMapStyles();
@@ -492,9 +496,9 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "arbeidsledige") {
-    if (value < 2.2) return "good";
-    if (value <= 3.0) return "medium";
-    return "bad";
+    if (value > 5) return "bad";
+    if (value >= 2.5) return "medium";
+    return "good";
   }
 
   if (metricKey === "ufore") {
@@ -555,6 +559,12 @@ function buildThresholdText(metricKey) {
   const metric = metrics[metricKey];
   const sourceText = metric.source ? ` Kilde: ${metric.source}.` : "";
   return `Grønn: ${metric.thresholds.good}. Gul: ${metric.thresholds.medium}. Rød: ${metric.thresholds.bad}.${sourceText}`;
+}
+
+function buildMetricDescription(metricKey) {
+  const metric = metrics[metricKey];
+  const sourceText = metric.source ? ` Kilde: ${metric.source}.` : "";
+  return `${metric.description}${sourceText}`;
 }
 
 function formatDecimal(value) {
