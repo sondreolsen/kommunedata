@@ -278,7 +278,6 @@ table {
     linear-gradient(135deg, var(--water) 0%, #d8eef8 46%, var(--water-deep) 100%);
 }
 
-.map-header-card,
 .legend-card,
 .map-focus-card {
   position: absolute;
@@ -290,14 +289,19 @@ table {
   backdrop-filter: blur(10px);
 }
 
-.map-header-card {
-  top: 18px;
-  left: 18px;
-  max-width: 320px;
-  padding: 16px;
+.map-accessible-copy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
-.map-header-card h1,
 .insight-card h2,
 .summary-card h2,
 .table-card h2 {
@@ -306,7 +310,6 @@ table {
   line-height: 1.12;
 }
 
-.map-header-card p:last-child,
 .summary-note,
 .table-note,
 .insight-card__intro {
@@ -724,7 +727,6 @@ tbody td {
     min-height: 620px;
   }
 
-  .map-header-card,
   .map-focus-card,
   .legend-card {
     position: static;
