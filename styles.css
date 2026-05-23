@@ -329,73 +329,35 @@ table {
 }
 
 .map-stat-card {
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  z-index: 4;
-  transform: translateY(-50%);
-  width: min(330px, calc(100% - 36px));
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(220, 229, 239, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 20px 46px rgba(28, 54, 96, 0.16);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(28, 54, 96, 0.08);
   backdrop-filter: blur(12px);
 }
 
-.map-stat-card__header {
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
+.map-stat-card strong {
+  margin-right: 8px;
+  font-size: 1.08rem;
 }
 
-.map-stat-card__header strong {
-  display: block;
-  font-size: 1.15rem;
-  line-height: 1.12;
-}
-
-.map-stat-card__header span:not(.metric-icon) {
-  display: block;
-  margin-top: 4px;
+.map-stat-card span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.35;
+  font-size: 0.95rem;
 }
 
-.map-stat-card__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-}
-
-.map-stat-card__grid article {
-  padding: 11px 12px;
-  border: 1px solid rgba(220, 229, 239, 0.9);
-  border-radius: 9px;
-  background: rgba(245, 248, 252, 0.9);
-}
-
-.map-stat-card__grid span {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--muted);
-  font-size: 0.76rem;
-  line-height: 1.25;
-}
-
-.map-stat-card__grid strong {
-  font-size: 1.45rem;
-  line-height: 1;
-}
-
-.map-stat-card p {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
+.map-stat-card b {
+  color: var(--ink);
+  font-size: 1.25rem;
 }
 
 .insight-panel {
@@ -728,23 +690,34 @@ tbody td {
   }
 
   .legend-card {
-    top: 12px;
-    bottom: auto;
-    left: 12px;
-    max-width: calc(100% - 24px);
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+  }
+
+  .legend-card strong {
+    margin-bottom: 5px;
+    font-size: 0.5rem;
+  }
+
+  .legend {
+    gap: 5px;
+  }
+
+  .legend__item {
+    gap: 5px;
+    font-size: 0.47rem;
+  }
+
+  .legend__swatch {
+    width: 6px;
+    height: 6px;
   }
 
   .map-stat-card {
-    top: auto;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    transform: none;
-    width: auto;
-  }
-
-  .map-stat-card__header {
-    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 12px;
   }
 
   .metric-button {

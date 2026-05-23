@@ -15,14 +15,10 @@ const summaryGood = document.querySelector("#summary-good");
 const summaryMedium = document.querySelector("#summary-medium");
 const summaryBad = document.querySelector("#summary-bad");
 const summaryNote = document.querySelector("#summary-note");
-const mapStatIcon = document.querySelector("#map-stat-icon");
 const mapStatTitle = document.querySelector("#map-stat-title");
-const mapStatSubtitle = document.querySelector("#map-stat-subtitle");
-const mapStatCount = document.querySelector("#map-stat-count");
 const mapStatGood = document.querySelector("#map-stat-good");
+const mapStatMedium = document.querySelector("#map-stat-medium");
 const mapStatBad = document.querySelector("#map-stat-bad");
-const mapStatMissing = document.querySelector("#map-stat-missing");
-const mapStatSource = document.querySelector("#map-stat-source");
 
 const VIEW_WIDTH = 820;
 const VIEW_HEIGHT = 1180;
@@ -626,21 +622,10 @@ function updateSummary() {
 function updateMapStatCard() {
   const counts = countStatuses(activeMetricKey);
   const metric = activeMetricKey ? metrics[activeMetricKey] : null;
-  const iconTone = metric?.iconTone || "neutral";
-
-  mapStatIcon.className = `metric-icon metric-icon--${iconTone}`;
-  mapStatIcon.textContent = metric?.icon || "ℹ";
   mapStatTitle.textContent = metric?.tooltipTitle || metric?.title || "Velg statistikk";
-  mapStatSubtitle.textContent = metric
-    ? metric.description
-    : "Velg en statistikk for å fargelegge kartet.";
-  mapStatCount.textContent = municipalityOrder.length;
   mapStatGood.textContent = counts.good;
+  mapStatMedium.textContent = counts.medium;
   mapStatBad.textContent = counts.bad;
-  mapStatMissing.textContent = counts.missing;
-  mapStatSource.textContent = metric
-    ? metric.source || "Foreløpige eksempeldata."
-    : "Velg en statistikk for detaljer.";
 }
 
 function countStatuses(metricKey) {
