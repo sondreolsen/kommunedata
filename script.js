@@ -15,6 +15,14 @@ const summaryGood = document.querySelector("#summary-good");
 const summaryMedium = document.querySelector("#summary-medium");
 const summaryBad = document.querySelector("#summary-bad");
 const summaryNote = document.querySelector("#summary-note");
+const mapStatIcon = document.querySelector("#map-stat-icon");
+const mapStatTitle = document.querySelector("#map-stat-title");
+const mapStatSubtitle = document.querySelector("#map-stat-subtitle");
+const mapStatCount = document.querySelector("#map-stat-count");
+const mapStatGood = document.querySelector("#map-stat-good");
+const mapStatBad = document.querySelector("#map-stat-bad");
+const mapStatMissing = document.querySelector("#map-stat-missing");
+const mapStatSource = document.querySelector("#map-stat-source");
 
 const VIEW_WIDTH = 820;
 const VIEW_HEIGHT = 1180;
@@ -73,6 +81,8 @@ const thresholdsText = {
 const metrics = {
   arbeidsledige: {
     title: "Arbeidsledighet",
+    icon: "💼",
+    iconTone: "work",
     description: "Helt ledige i prosent av arbeidsstyrken. Tall fra NAV for april 2026.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: { good: "Under 2,5 %", medium: "2,5 % til og med 5,0 %", bad: "Over 5,0 %" },
@@ -80,6 +90,8 @@ const metrics = {
   },
   ufore: {
     title: "Uføretrygdede",
+    icon: "💜",
+    iconTone: "welfare",
     description: "Uføretrygdede i prosent av befolkningen. Tall fra SSB for 2024.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: {
@@ -91,6 +103,8 @@ const metrics = {
   },
   saksbehandlingstid: {
     title: "Saksbehandlingstid private planer",
+    icon: "⏱",
+    iconTone: "time",
     description: "Samlet tid fra oppstartsmøte til endelig vedtak i kommunestyret. Tall fra SSB for 2025, supplert med 2024/2023 der 2025 mangler.",
     format: value => `${Math.round(value)} dager`,
     thresholds: { good: "Under 400 dager", medium: "400 til 999 dager", bad: "Over 999 dager" },
@@ -98,6 +112,8 @@ const metrics = {
   },
   gebyrPrivatePlaner: {
     title: "Gebyr private planer",
+    icon: "📋",
+    iconTone: "fee",
     description: "Gebyr for privat forslag til detaljreguleringsplan. Tall fra SSB for 2025.",
     format: value => `${formatWholeNumber(value)} kr`,
     thresholds: { good: "Opp til 100 000 kr", medium: "100 000 til 150 000 kr", bad: "Over 150 000 kr" },
@@ -105,6 +121,8 @@ const metrics = {
   },
   sykefravaer: {
     title: "Sykefravær",
+    icon: "🌡",
+    iconTone: "health",
     description: "Legemeldt sykefraværsprosent. Tall fra SSB for 4. kvartal 2025.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: { good: "Under 5,5 %", medium: "5,5 til 6,4 %", bad: "6,5 % eller høyere" },
@@ -112,6 +130,8 @@ const metrics = {
   },
   befolkningsvekst: {
     title: "Befolkningsvekst i prosent de siste tre årene",
+    icon: "👥",
+    iconTone: "people",
     description: "Endring i folketall siste tre år.",
     format: value => `${value.toFixed(1).replace(".", ",")} %`,
     thresholds: { good: "Over 2,5 %", medium: "0 % til 2,5 %", bad: "Under 0 %" }
@@ -119,6 +139,8 @@ const metrics = {
   driftsresultat: {
     title: "Driftsresultat kommunen",
     tooltipTitle: "Driftsresultat",
+    icon: "📊",
+    iconTone: "economy",
     description: "Netto driftsresultat i prosent av brutto driftsinntekter. Tall fra SSB for 2025.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: { good: "2,0 % eller mer", medium: "0,0 % til 1,9 %", bad: "Under 0,0 %" },
@@ -126,6 +148,8 @@ const metrics = {
   },
   eiendomsskatt: {
     title: "Eiendomsskatt",
+    icon: "🏠",
+    iconTone: "property",
     description: "Promillesats eller tilsvarende nivå.",
     format: value => `${value.toFixed(1).replace(".", ",")} ‰`,
     thresholds: { good: "Under 2,0 ‰", medium: "2,0 ‰ til 4,0 ‰", bad: "Over 4,0 ‰" }
@@ -264,6 +288,7 @@ renderMetricButtons();
 renderMap();
 renderTable();
 updateSummary();
+updateMapStatCard();
 
 resetButton.addEventListener("click", () => {
   activeMetricKey = null;
@@ -288,7 +313,8 @@ function renderMetricButtons() {
     button.className = "metric-button";
     button.dataset.metric = metricKey;
     button.innerHTML = `
-      <span>
+      <span class="metric-icon metric-icon--${metric.iconTone}" aria-hidden="true">${metric.icon}</span>
+      <span class="metric-button__copy">
         <span class="metric-button__title">${metric.title}</span>
         <span class="metric-button__meta">${metric.description}</span>
       </span>
@@ -420,6 +446,7 @@ function updateUI() {
   updateMapStyles();
   renderTable();
   updateSummary();
+  updateMapStatCard();
   refreshVisibleMapTooltip();
 }
 
@@ -594,6 +621,26 @@ function updateSummary() {
     ? `Fordeling for ${metrics[activeMetricKey].title.toLowerCase()} i Vestland-kommunene.`
     : "Velg en statistikk for å se fordelingen mellom kommunene.";
 
+}
+
+function updateMapStatCard() {
+  const counts = countStatuses(activeMetricKey);
+  const metric = activeMetricKey ? metrics[activeMetricKey] : null;
+  const iconTone = metric?.iconTone || "neutral";
+
+  mapStatIcon.className = `metric-icon metric-icon--${iconTone}`;
+  mapStatIcon.textContent = metric?.icon || "ℹ";
+  mapStatTitle.textContent = metric?.tooltipTitle || metric?.title || "Velg statistikk";
+  mapStatSubtitle.textContent = metric
+    ? metric.description
+    : "Velg en statistikk for å fargelegge kartet.";
+  mapStatCount.textContent = municipalityOrder.length;
+  mapStatGood.textContent = counts.good;
+  mapStatBad.textContent = counts.bad;
+  mapStatMissing.textContent = counts.missing;
+  mapStatSource.textContent = metric
+    ? metric.source || "Foreløpige eksempeldata."
+    : "Velg en statistikk for detaljer.";
 }
 
 function countStatuses(metricKey) {

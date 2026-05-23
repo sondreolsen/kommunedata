@@ -328,6 +328,76 @@ table {
   background: var(--missing);
 }
 
+.map-stat-card {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  z-index: 4;
+  transform: translateY(-50%);
+  width: min(330px, calc(100% - 36px));
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(220, 229, 239, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 20px 46px rgba(28, 54, 96, 0.16);
+  backdrop-filter: blur(12px);
+}
+
+.map-stat-card__header {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.map-stat-card__header strong {
+  display: block;
+  font-size: 1.15rem;
+  line-height: 1.12;
+}
+
+.map-stat-card__header span:not(.metric-icon) {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.map-stat-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.map-stat-card__grid article {
+  padding: 11px 12px;
+  border: 1px solid rgba(220, 229, 239, 0.9);
+  border-radius: 9px;
+  background: rgba(245, 248, 252, 0.9);
+}
+
+.map-stat-card__grid span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.map-stat-card__grid strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.map-stat-card p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .insight-panel {
   display: grid;
   gap: 16px;
@@ -348,7 +418,7 @@ table {
 
 .metric-button {
   width: 100%;
-  padding: 15px 16px;
+  padding: 13px 14px;
   text-align: left;
   border-radius: 8px;
   border: 1px solid var(--line);
@@ -356,7 +426,7 @@ table {
   color: var(--ink);
   cursor: pointer;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
@@ -373,6 +443,10 @@ table {
 .metric-button.is-active {
   border-color: rgba(36, 99, 235, 0.95);
   background: var(--accent-soft);
+}
+
+.metric-button__copy {
+  min-width: 0;
 }
 
 .metric-button__title {
@@ -401,6 +475,63 @@ table {
 .metric-button.is-active .metric-button__indicator {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 4px var(--accent);
+}
+
+.metric-icon {
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 1.25rem;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.metric-icon--neutral {
+  background: #eef4ff;
+  color: #2463eb;
+}
+
+.metric-icon--work {
+  background: #e6fbff;
+  color: #0891b2;
+}
+
+.metric-icon--welfare {
+  background: #f1e9ff;
+  color: #7c3aed;
+}
+
+.metric-icon--time {
+  background: #eaf1ff;
+  color: #2563eb;
+}
+
+.metric-icon--fee {
+  background: #fff0e8;
+  color: #ea580c;
+}
+
+.metric-icon--health {
+  background: #e8fbf7;
+  color: #0f9f8f;
+}
+
+.metric-icon--people {
+  background: #fff0f3;
+  color: #e11d48;
+}
+
+.metric-icon--economy {
+  background: #efeaff;
+  color: #6d28d9;
+}
+
+.metric-icon--property {
+  background: #fff7d8;
+  color: #ca8a04;
 }
 
 .reset-button {
@@ -597,9 +728,33 @@ tbody td {
   }
 
   .legend-card {
-    position: static;
+    top: 12px;
+    bottom: auto;
+    left: 12px;
+    max-width: calc(100% - 24px);
+  }
+
+  .map-stat-card {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    transform: none;
     width: auto;
-    margin: 12px;
+  }
+
+  .map-stat-card__header {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .metric-button {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .metric-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.12rem;
   }
 
   .municipality-label {
