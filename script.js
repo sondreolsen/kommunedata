@@ -1,6 +1,8 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const mapSvg = document.querySelector("#vestland-map");
+const mapSurface = document.querySelector(".map-surface");
+const mapTooltip = document.querySelector("#map-tooltip");
 const metricList = document.querySelector("#metric-list");
 const resetButton = document.querySelector("#reset-button");
 const mapTitle = document.querySelector("#map-title");
@@ -120,6 +122,7 @@ const metrics = {
   },
   driftsresultat: {
     title: "Driftsresultat kommunen",
+    tooltipTitle: "Driftsresultat",
     description: "Netto driftsresultat i prosent av brutto driftsinntekter. Tall fra SSB for 2025.",
     format: value => `${formatDecimal(value)} %`,
     thresholds: { good: "2,0 % eller mer", medium: "0,0 % til 1,9 %", bad: "Under 0,0 %" },
@@ -324,10 +327,35 @@ function renderMap() {
     path.setAttribute("tabindex", "0");
 
     const title = document.createElementNS(SVG_NS, "title");
-    title.textContent = name;
+    title.textContent = buildMunicipalityTooltipText(name);
     path.appendChild(title);
 
-    path.addEventListener("click", () => {
+    path.addEventListener("pointerenter", event => {
+      showMapTooltip(event, name);
+    });
+
+    path.addEventListener("pointermove", event => {
+      moveMapTooltip(event);
+    });
+
+    path.addEventListener("pointerleave", () => {
+      hideMapTooltip();
+    });
+
+    path.addEventListener("mouseenter", event => {
+      showMapTooltip(event, name);
+    });
+
+    path.addEventListener("mousemove", event => {
+      moveMapTooltip(event);
+    });
+
+    path.addEventListener("mouseleave", () => {
+      hideMapTooltip();
+    });
+
+    path.addEventListener("click", event => {
+      showMapTooltip(event, name);
       selectedMunicipality = selectedMunicipality === name ? null : name;
       updateMapStyles();
       updateSummary();
@@ -394,6 +422,7 @@ function updateUI() {
   updateMapStyles();
   renderTable();
   updateSummary();
+  refreshVisibleMapTooltip();
 }
 
 function updateButtonState() {
@@ -411,6 +440,8 @@ function updateMapStyles() {
 
     path.style.fill = metricData ? statusToColor(metricData.status) : "var(--land)";
     path.style.opacity = isMatch ? "1" : "0.22";
+    path.setAttribute("aria-label", buildMunicipalityTooltipText(name).replace("\n", ", "));
+    path.querySelector("title").textContent = buildMunicipalityTooltipText(name);
     path.classList.toggle("is-selected", isSelected);
   });
 
@@ -549,6 +580,91 @@ function formatMetricValue(metricKey, value) {
   }
 
   return metrics[metricKey].format(value);
+}
+
+function showMapTooltip(event, name) {
+  if (!mapTooltip) {
+    return;
+  }
+
+  mapTooltip.dataset.name = name;
+  updateMapTooltipContent(name);
+  mapTooltip.classList.add("is-visible");
+  moveMapTooltip(event);
+}
+
+function moveMapTooltip(event) {
+  if (!mapTooltip?.classList.contains("is-visible") || !mapSurface) {
+    return;
+  }
+
+  const surfaceRect = mapSurface.getBoundingClientRect();
+  const tooltipOffset = 14;
+  const maxX = surfaceRect.width - mapTooltip.offsetWidth - 10;
+  const maxY = surfaceRect.height - mapTooltip.offsetHeight - 10;
+  const nextX = event.clientX - surfaceRect.left + tooltipOffset;
+  const nextY = event.clientY - surfaceRect.top + tooltipOffset;
+  const clampedX = Math.min(Math.max(10, nextX), Math.max(10, maxX));
+  const clampedY = Math.min(Math.max(10, nextY), Math.max(10, maxY));
+
+  mapTooltip.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+}
+
+function hideMapTooltip() {
+  if (!mapTooltip) {
+    return;
+  }
+
+  mapTooltip.classList.remove("is-visible");
+  delete mapTooltip.dataset.name;
+}
+
+function refreshVisibleMapTooltip() {
+  if (!mapTooltip?.classList.contains("is-visible") || !mapTooltip.dataset.name) {
+    return;
+  }
+
+  updateMapTooltipContent(mapTooltip.dataset.name);
+}
+
+function updateMapTooltipContent(name) {
+  const tooltipLines = buildMunicipalityTooltipLines(name);
+  const title = document.createElement("strong");
+  const detail = document.createElement("span");
+
+  title.textContent = tooltipLines.title;
+  detail.textContent = tooltipLines.detail;
+  mapTooltip.setAttribute("aria-label", `${tooltipLines.title}. ${tooltipLines.detail}`);
+  mapTooltip.replaceChildren(title, detail);
+}
+
+function buildMunicipalityTooltipText(name) {
+  const tooltipLines = buildMunicipalityTooltipLines(name);
+  return `${tooltipLines.title}\n${tooltipLines.detail}`;
+}
+
+function buildMunicipalityTooltipLines(name) {
+  if (!activeMetricKey) {
+    return {
+      title: name,
+      detail: "Velg statistikk for tall"
+    };
+  }
+
+  const metricTitle = metrics[activeMetricKey].tooltipTitle || metrics[activeMetricKey].title;
+  const metricValue = formatTooltipMetricValue(activeMetricKey, getMetricEntry(name, activeMetricKey).value);
+
+  return {
+    title: name,
+    detail: `${metricTitle} ${metricValue}`
+  };
+}
+
+function formatTooltipMetricValue(metricKey, value) {
+  const formattedValue = formatMetricValue(metricKey, value);
+  return formattedValue
+    .replace(" %", " prosent")
+    .replace(" ‰", " promille");
 }
 
 function renderStatusPill(status) {
