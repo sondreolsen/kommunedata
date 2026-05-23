@@ -119,9 +119,10 @@ const metrics = {
   },
   driftsresultat: {
     title: "Driftsresultat kommunen",
-    description: "Netto driftsresultat i prosent.",
-    format: value => `${value.toFixed(1).replace(".", ",")} %`,
-    thresholds: { good: "Over 1,8 %", medium: "0 % til 1,8 %", bad: "Under 0 %" }
+    description: "Netto driftsresultat i prosent av brutto driftsinntekter. Tall fra SSB for 2025.",
+    format: value => `${formatDecimal(value)} %`,
+    thresholds: { good: "2,0 % eller mer", medium: "0,0 % til 1,9 %", bad: "Under 0,0 %" },
+    source: "SSB tabell 12134, 2025"
   },
   eiendomsskatt: {
     title: "Eiendomsskatt",
@@ -140,7 +141,7 @@ function buildMetricValues() {
       saksbehandlingstid: Math.round(createValue(index, 65, 8.5, 260)),
       sykefravaer: createValue(index, 5.6, 0.19, 9.7),
       befolkningsvekst: createGrowthValue(index),
-      driftsresultat: createOperatingValue(index),
+      driftsresultat: getSsbDriftsresultatValue(municipalityName, createOperatingValue(index)),
       eiendomsskatt: createTaxValue(index)
     };
     return accumulator;
@@ -171,6 +172,15 @@ function getSsbUforeValue(municipalityName) {
   return window.SSB_UFORETRYGD_2024?.municipalities?.[municipalityName]?.value;
 }
 
+function getSsbDriftsresultatValue(municipalityName, fallbackValue) {
+  const data = window.SSB_DRIFTSRESULTAT_2025?.municipalities;
+  if (!data || !Object.prototype.hasOwnProperty.call(data, municipalityName)) {
+    return fallbackValue;
+  }
+
+  return data[municipalityName].value;
+}
+
 function buildBreakpoints(metricKey) {
   const values = municipalityOrder
     .map(name => metricValues[name]?.[metricKey])
@@ -193,7 +203,6 @@ metricValues.Solund.ungeUfore = null;
 metricValues.Fedje.saksbehandlingstid = null;
 metricValues.Ulvik.sykefravaer = null;
 metricValues.Austrheim.befolkningsvekst = null;
-metricValues.Lærdal.driftsresultat = null;
 metricValues.Austevoll.eiendomsskatt = null;
 
 const uforeBreakpoints = buildBreakpoints("ufore");
@@ -514,7 +523,7 @@ function getStatus(metricKey, value) {
   }
 
   if (metricKey === "driftsresultat") {
-    if (value > 1.8) return "good";
+    if (value >= 2) return "good";
     if (value >= 0) return "medium";
     return "bad";
   }
